@@ -4,6 +4,7 @@
 package pl.wit.studata.gui.tabs;
 
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -14,6 +15,7 @@ import java.awt.Insets;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -34,10 +36,13 @@ import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.RowSorter;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.border.Border;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 
 import pl.wit.studata.AppData;
 import pl.wit.studata.InternalData;
@@ -46,12 +51,13 @@ import pl.wit.studata.backend.models.UniGroup;
 import pl.wit.studata.backend.models.UniStudent;
 import pl.wit.studata.gui.FormWidget;
 import pl.wit.studata.gui.enums.StudentTableHeaders;
+import pl.wit.studata.gui.interfaces.IDatabasePusher;
 
 /**
  * Klasa opisująca zakładkę "Student"
  * @author Jakub Jaworski
  */
-public class StudentTab extends JPanel implements ActionListener {
+public class StudentTab extends JPanel implements ActionListener, IDatabasePusher {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -63,9 +69,24 @@ public class StudentTab extends JPanel implements ActionListener {
 	
 	/**
 	 * Panel dolny.
-	 * (Wprowadzanie danych)
+	 * (Wprowadzanie danych i filtrowanie)
 	 */
 	private JPanel pnlBot = null;
+	
+	/**
+	 * Podpanel panelu dolnego przechowujący jego karty.
+	 */
+	private JPanel pnlBotCards = null;
+	
+	/**
+	 * Karta w panelu dolnym, skupiająca się na dodawaniu, aktualizacji i usuwaniu danych.
+	 */
+	private JPanel pnlCrUpDel = null;
+	
+	/**
+	 * Karta w panelu dolnym, skupiająca się na wyszukiwaniu danych.
+	 */
+	private JPanel pnlQuery = null;
 
 	/**
 	 * Tabela na dane o studentach
@@ -79,9 +100,14 @@ public class StudentTab extends JPanel implements ActionListener {
 	private JScrollPane scrlTblData = null;
 	
 	/**
-	 * Mapa pola formularza do komponentów formularzowych
+	 * Mapa pola formularza do komponentów formularzowych (formularz tworzenia)
 	 */
 	private Map<StudentTableHeaders, Component> formMap = null;
+	
+	/**
+	 * Mapa pola formularza do komponentów formularzowych (formularz wyszukiwania
+	 */
+	private Map<StudentTableHeaders, Component> formQueryMap = null;
 	
 	/**
 	 * Przycisk, którego funkcją jest zatwierdzenie formularza
@@ -102,6 +128,16 @@ public class StudentTab extends JPanel implements ActionListener {
 	 * Przycisk, którego funkcją jest usunięcie zaznaczonego wiersza z tabeli oraz danych, które reprezentuje ten wiersz z kolekcji w których występuje.
 	 */
 	private JButton btnDelete = null;
+	
+	/**
+	 * Przycisk, którego funkcją jest dokonanie wyszukiwania według podanych kryteriów.
+	 */
+	private JButton btnSearch = null;
+	
+	/**
+	 * Przycisk, którego funkcją jest przywrócenie domyślnych wartości kryteriom.
+	 */
+	private JButton btnClearCriteria = null;
 	
 	// [Dane]
 	
@@ -124,6 +160,12 @@ public class StudentTab extends JPanel implements ActionListener {
 	 * Zmienna do przechowywania, czy istnieją jakieś modyfikacje, które nie zostały ani zatwierdzone, ani odrzucone.
 	 */
 	private boolean unsavedChanges = false;
+	
+	// [Różne]
+	
+	// Zmienne wewnętrzne do 
+	private static final String CREATION_FORM_STR = "Creation";
+	private static final String SEARCH_FORM_STR = "Search";
 	
 	/**
 	 * Konstruktor bezparametryczny. 
@@ -170,15 +212,35 @@ public class StudentTab extends JPanel implements ActionListener {
 		
 		// ----------------------
 		
-		// Panel dolny (wprowadzanie danych)
+		// Panel dolny (wprowadzanie danych i wyszukiwanie danych)
 		pnlBot = new JPanel();
 		pnlBot.setBorder(BorderFactory.createTitledBorder("Form"));
-		pnlBot.setLayout(new GridBagLayout());
-		GridBagConstraints cPnlBot = new GridBagConstraints();
-		cPnlBot.insets = new Insets(0, 20, 0, 20);
+		pnlBot.setLayout(new BorderLayout());
 		
-		FormWidget form = new FormWidget();
+		JComboBox<String> cmbForm = new JComboBox<String>(new String[] {CREATION_FORM_STR, SEARCH_FORM_STR});
+		cmbForm.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JComboBox source = (JComboBox) e.getSource();
+				String cardName = (String) source.getSelectedItem();
+				CardLayout cl = (CardLayout) pnlBotCards.getLayout();
+				cl.show(pnlBotCards, cardName);
+			}
+		});
 		
+		pnlBotCards = new JPanel();
+		pnlBotCards.setLayout(new CardLayout());
+		
+		pnlBot.add(cmbForm, BorderLayout.PAGE_START);
+		pnlBot.add(pnlBotCards, BorderLayout.CENTER);
+		
+		pnlCrUpDel = new JPanel();
+		pnlCrUpDel.setLayout(new GridBagLayout());
+		GridBagConstraints cPnlCrRupDel = new GridBagConstraints();
+		cPnlCrRupDel.insets = new Insets(0, 20, 0, 20);
+		
+		FormWidget formCreateUpdate = new FormWidget();
 		formMap = new LinkedHashMap<>();
 		for (StudentTableHeaders header: StudentTableHeaders.values()) {
 			String label = header.getHeaderName().concat(": ");
@@ -207,16 +269,16 @@ public class StudentTab extends JPanel implements ActionListener {
 			}
 			
 			if (comp != null) {
-				form.addField(label, comp);
+				formCreateUpdate.addField(label, comp);
 				formMap.put(header, comp);
 			}
 		}
 		
 		btnSubmit = new JButton("Submit");
 		btnSubmit.addActionListener(this);
-		form.addWidget(btnSubmit);
+		formCreateUpdate.addWidget(btnSubmit);
 		
-		pnlBot.add(form, cPnlBot);
+		pnlCrUpDel.add(formCreateUpdate, cPnlCrRupDel);
 		
 		// Update-delete frame
 		JPanel pnlUpdateDelete = new JPanel();
@@ -239,9 +301,61 @@ public class StudentTab extends JPanel implements ActionListener {
 		btnDelete.setForeground(Color.WHITE);
 		pnlUpdateDelete.add(btnDelete);
 		
-		++cPnlBot.gridy;
-		pnlBot.add(pnlUpdateDelete, cPnlBot);
-
+		++cPnlCrRupDel.gridy;
+		pnlCrUpDel.add(pnlUpdateDelete, cPnlCrRupDel);
+		pnlBotCards.add(pnlCrUpDel, CREATION_FORM_STR);
+		
+		// Panel do poszukiwań
+		pnlQuery = new JPanel();
+		FormWidget formQuery = new FormWidget();
+		
+		formQueryMap = new LinkedHashMap<>();
+		for (StudentTableHeaders header: StudentTableHeaders.values()) {
+			String label = header.getHeaderName().concat(": ");
+			Component comp = null;
+			
+			switch (header) {
+				case ID:
+					comp = new JSpinner(new SpinnerNumberModel(-1, -1, Integer.MAX_VALUE, 1));
+					break;
+				case FNAME:
+				case LNAME:
+					comp = new JTextField(20);
+					break;
+				case GROUP:
+					comp = new JComboBox<String>();
+					
+					@SuppressWarnings("unchecked") 
+					JComboBox<String> combo = (JComboBox<String>) comp;
+					if (groups != null) 
+						for (UniGroup g: groups) {
+							combo.addItem(g.getGroupCode());
+						}
+					combo.addItem(AppData.NONE_TEXT);
+					combo.addItem(AppData.ANY_TEXT);
+					combo.setSelectedIndex(combo.getItemCount() - 1);
+					break;
+			}
+			
+			if (comp != null) {
+				formQuery.addField(label, comp);
+				formQueryMap.put(header, comp);
+			}
+		}
+		
+		btnSearch = new JButton("Filter");
+		btnSearch.addActionListener(this);
+		
+		btnClearCriteria = new JButton("Reset Criteria");
+		btnClearCriteria.addActionListener(this);
+		
+		formQuery.addWidget(btnSearch);
+		formQuery.addWidget(btnClearCriteria);
+		
+		pnlQuery.add(formQuery);
+		
+		pnlBotCards.add(pnlQuery, SEARCH_FORM_STR);
+		
 		add(pnlBot);
 		
 		// Czynności po zbudowaniu interfejsu
@@ -501,11 +615,82 @@ public class StudentTab extends JPanel implements ActionListener {
 	private UniStudent findById(int id) {
 		return students.stream().filter((stud) -> (stud.getStudentId() == id)).findFirst().orElse(null);
 	}
+	
+	private void filterTable() {
+		JSpinner spnId = (JSpinner) formQueryMap.get(StudentTableHeaders.ID); 
+		JTextField tfFirstName = (JTextField) formQueryMap.get(StudentTableHeaders.FNAME);
+		JTextField tfLastName = (JTextField) formQueryMap.get(StudentTableHeaders.LNAME);
+		JComboBox<String> cmbGroup = (JComboBox<String>) formQueryMap.get(StudentTableHeaders.GROUP);
+		
+		Integer idQuery = (Integer) spnId.getValue();
+		idQuery = idQuery > -1 ? idQuery : null;
+		
+		String queryFName = tfFirstName.getText().trim();
+		queryFName = queryFName.isEmpty() ? null : queryFName;
+		
+		String queryLName = tfLastName.getText().trim();
+		queryLName = queryLName.isEmpty() ? null : queryLName;
+		
+		String queryGroup = (String) cmbGroup.getSelectedItem();
+		queryGroup = queryGroup.equals(AppData.ANY_TEXT) ? null : queryGroup;
+		
+		updateTable();
+		
+		List<Integer> rowsToDelete = new ArrayList<Integer>(tblData.getRowCount());
+		
+		for (int rowIdx = 0; rowIdx < tblData.getRowCount(); ++rowIdx) {
+			boolean criteriaMet = true;
+			if (criteriaMet && idQuery != null) {
+				Integer val = (Integer) tblData.getValueAt(rowIdx, StudentTableHeaders.ID.ordinal());
+				criteriaMet &= val.equals(idQuery);
+			}
+			if (criteriaMet && queryFName != null) {
+				String val = ((String) tblData.getValueAt(rowIdx, StudentTableHeaders.FNAME.ordinal())).toUpperCase();
+				criteriaMet &= val.contains(queryFName.toUpperCase());
+			}
+			if (criteriaMet && queryLName != null) {
+				String val = ((String) tblData.getValueAt(rowIdx, StudentTableHeaders.LNAME.ordinal())).toUpperCase();
+				criteriaMet &= val.contains(queryLName.toUpperCase());
+			}
+			if (criteriaMet && queryGroup != null) {
+				String val = ((String) tblData.getValueAt(rowIdx, StudentTableHeaders.GROUP.ordinal())).toUpperCase();
+				criteriaMet &= val.equals(queryGroup);
+			}
+			
+			// Oznacz do usunięcia jeśli koniunkcja niespełniona
+			if (!criteriaMet) {
+				rowsToDelete.add(rowIdx);
+			}
+		}
+		
+		// Usuń 
+		// (offset służy do rozwiązania problemu, w którym każda skasowana linijka zmniejsza indeks tych pod nią o 1)
+		int offset = 0;
+		for (int rowIdx: rowsToDelete) {
+			deleteTableRow(rowIdx - offset);
+			++offset;
+		}
+	}
+	
+	private void resetFilterCriteria() {
+		JSpinner spnId = (JSpinner) formQueryMap.get(StudentTableHeaders.ID); 
+		JTextField tfFirstName = (JTextField) formQueryMap.get(StudentTableHeaders.FNAME);
+		JTextField tfLastName = (JTextField) formQueryMap.get(StudentTableHeaders.LNAME);
+		JComboBox<String> cmbGroup = (JComboBox<String>) formQueryMap.get(StudentTableHeaders.GROUP);
+		
+		spnId.setValue(-1);
+		tfFirstName.setText("");
+		tfLastName.setText("");
+		cmbGroup.setSelectedItem(AppData.ANY_TEXT);
+		
+		updateTable();
+	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		Object source = e.getSource();
 		if (source == btnSubmit) { // Można porównać za pomocą ==, ponieważ sprawdzamy tożsamość obiektu.
+			
 			Integer id = (Integer) ((JSpinner) formMap.get(StudentTableHeaders.ID)).getValue();
 			String firstName = ((JTextField) formMap.get(StudentTableHeaders.FNAME)).getText().trim();
 			String lastName = ((JTextField) formMap.get(StudentTableHeaders.LNAME)).getText().trim();
@@ -520,6 +705,7 @@ public class StudentTab extends JPanel implements ActionListener {
 			else {
 				// TODO Zapytaj się użytkownika, czy na pewno!
 				unsavedChanges |= updateStudent(queryStudent, firstName, lastName, group);
+				
 			}
 		} else if (source == btnDeselect) {
 			tblData.clearSelection();
@@ -558,7 +744,24 @@ public class StudentTab extends JPanel implements ActionListener {
 				tfLastName.setText(lastName);
 				cmbGroup.setSelectedIndex(groupIdx);
 			}
+		} else if (source == btnSearch) {
+			filterTable();
+		} else if (source == btnClearCriteria) {
+			resetFilterCriteria();
+			updateTable();
 		}
 		
+	}
+
+	@Override
+	public void pushToDB() {
+		List<UniStudent> studentsToDB = new ArrayList<UniStudent>(students);
+		Map<UniStudent, UniGroup> groupAssignmentsToDB = new HashMap<UniStudent, UniGroup>(groupAssignments);
+		
+		UniDB db = InternalData.DATABASE;
+		
+		synchronized (db) {
+			db.setStudentList(studentsToDB);
+		}
 	}
 }

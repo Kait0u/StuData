@@ -28,4 +28,9 @@ public class AppData {
 	 * Wartość zastępcza, która zostanie wyświetlona użytkownikowi w przypadku, gdy pewna wartość jest nullem.
 	 */
 	public static final String NONE_TEXT = "<None>";
+	
+	/**
+	 * Wartość zastępcza, która zostanie wyświetlona użytkownikowi w przypadku, gdy chcemy wyrazić dowolną wartość, np. w formularzu.
+	 */
+	public static final String ANY_TEXT = "<Any>";
 }
