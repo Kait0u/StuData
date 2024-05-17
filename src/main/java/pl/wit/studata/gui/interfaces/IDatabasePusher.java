@@ -8,5 +8,8 @@ package pl.wit.studata.gui.interfaces;
  * @author Jakub Jaworski
  */
 public interface IDatabasePusher {
+	/**
+	 * Metoda, która wysyła obecny stan obiektu do bazdy danych celem wprowadzenia w niej zmian trwałych.
+	 */
 	public void pushToDB();
 }

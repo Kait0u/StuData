@@ -1,6 +1,3 @@
-/**
- * 
- */
 package pl.wit.studata.gui.tabs;
 
 import java.awt.BorderLayout;
@@ -12,7 +9,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -23,35 +19,27 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.IntStream;
 
 import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
-import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
-import javax.swing.RowSorter;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.border.Border;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 
 import pl.wit.studata.AppData;
 import pl.wit.studata.InternalData;
 import pl.wit.studata.backend.UniDB;
 import pl.wit.studata.backend.models.UniGroup;
 import pl.wit.studata.backend.models.UniStudent;
-import pl.wit.studata.gui.FormWidget;
+import pl.wit.studata.gui.MessageBoxes;
 import pl.wit.studata.gui.enums.StudentTableHeaders;
 import pl.wit.studata.gui.interfaces.IDatabasePusher;
+import pl.wit.studata.gui.widgets.FormWidget;
+import pl.wit.studata.gui.widgets.TableWidget;
 
 /**
  * Klasa opisująca zakładkę "Student"
@@ -91,7 +79,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 	/**
 	 * Tabela na dane o studentach
 	 */
-	private JTable tblData = null;
+	private TableWidget tblData = null;
 	
 	/**
 	 * Widok z suwakiem, który zwierać będzie tabelę.
@@ -164,7 +152,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 	// [Różne]
 	
 	// Zmienne wewnętrzne do 
-	private static final String CREATION_FORM_STR = "Creation";
+	private static final String CREATE_FORM_STR = "Create";
 	private static final String SEARCH_FORM_STR = "Search";
 	
 	/**
@@ -180,27 +168,17 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 		pnlTop.setBorder(BorderFactory.createTitledBorder("Data"));
 		pnlTop.setLayout(new BorderLayout());
 		
-		Object[] headers = Arrays.asList(StudentTableHeaders.values())
+		String[] headers = Arrays.asList(StudentTableHeaders.values())
 				.stream()
 				.map(new Function<StudentTableHeaders, String>() {
 					@Override
 					public String apply(StudentTableHeaders h) {
 						return h.getHeaderName();
 					}
-				}).toArray();
+				}).toArray(String[]::new);
 		
-		tblData = new JTable();
+		tblData = new TableWidget(headers);
 		
-		DefaultTableModel model = new DefaultTableModel() {
-			@Override
-			public boolean isCellEditable(int row, int column) {
-				return false;
-			}
-		};
-		
-		for (Object h: headers)
-			model.addColumn(h);
-		tblData.setModel(model);
 		tblData.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
 		scrlTblData = new JScrollPane(tblData);
@@ -217,7 +195,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 		pnlBot.setBorder(BorderFactory.createTitledBorder("Form"));
 		pnlBot.setLayout(new BorderLayout());
 		
-		JComboBox<String> cmbForm = new JComboBox<String>(new String[] {CREATION_FORM_STR, SEARCH_FORM_STR});
+		JComboBox<String> cmbForm = new JComboBox<String>(new String[] {CREATE_FORM_STR, SEARCH_FORM_STR});
 		cmbForm.addActionListener(new ActionListener() {
 			
 			@Override
@@ -287,7 +265,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 		pnlUpdateDelete.setPreferredSize(new Dimension(150, 120));
 		
 		
-		btnEdit = new JButton("Update");
+		btnEdit = new JButton("Load & Edit");
 		btnEdit.addActionListener(this);
 		pnlUpdateDelete.add(btnEdit);
 		
@@ -303,7 +281,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 		
 		++cPnlCrRupDel.gridy;
 		pnlCrUpDel.add(pnlUpdateDelete, cPnlCrRupDel);
-		pnlBotCards.add(pnlCrUpDel, CREATION_FORM_STR);
+		pnlBotCards.add(pnlCrUpDel, CREATE_FORM_STR);
 		
 		// Panel do poszukiwań
 		pnlQuery = new JPanel();
@@ -416,8 +394,6 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 	private void addTableRow(UniStudent s, UniGroup g) {
 		if (s == null) return;
 		
-		DefaultTableModel tbModel = (DefaultTableModel) tblData.getModel();
-		
 		Object[] rowData = new Object[] {
 			s.getStudentId(),
 			s.getFirstName(),
@@ -425,25 +401,15 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 			g != null ? g.getGroupCode() : AppData.NONE_TEXT
 		};
 		
-		tbModel.addRow(rowData);
+		tblData.addDataRow(rowData);
 	}
 	
 	/**
-	 * Usuwa wiersz z tabeli o zadanym indeksie.
-	 * @param rowIdx Indeks do usunięcia.
-	 */
-	private void deleteTableRow(int rowIdx) {
-		((DefaultTableModel) tblData.getModel()).removeRow(rowIdx);
-	}
-	
-	/**
-	 * Aktualizuje wiersz w tabeli o zadanym indeksie.
+	 * Aktualizuje wiersz w tabeli o zadanym indeksie informacjami o studencie i grupie.
 	 * @param rowIdx
 	 */
 	private void updateTableRow(int rowIdx, UniStudent s, UniGroup g) {
 		if (s == null) return;
-		
-		DefaultTableModel tbModel = (DefaultTableModel) tblData.getModel();
 		
 		Object[] rowData = new Object[] {
 				s.getStudentId(),
@@ -452,8 +418,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 				g != null ? g.getGroupCode() : AppData.NONE_TEXT
 		};
 		
-		for (int i = 0; i < rowData.length; ++i)
-			tbModel.setValueAt(rowData[i], rowIdx, i);
+		tblData.updateRow(rowIdx, rowData);
 	}
 	
 	/**
@@ -465,17 +430,9 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 		if (s == null)
 			return -1;
 		
-		int result = 0;
 		int studentId = s.getStudentId();
 		
-		for (; result < tblData.getRowCount(); ++result) {
-			int found = (Integer) tblData.getValueAt(result, StudentTableHeaders.ID.ordinal());
-			if (studentId == found) break;
-		}
-		
-		result = (result == tblData.getRowCount()) ? -1 : result;
-		
-		return result;
+		return tblData.findRowByCellValue(studentId, StudentTableHeaders.ID.ordinal());
 	}
 	
 	/**
@@ -484,8 +441,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 	private void updateTable() {
 		if (tblData == null) return;
 		
-		DefaultTableModel tbModel = (DefaultTableModel) tblData.getModel();
-		tbModel.setRowCount(0);
+		tblData.clear();
 		
 		if (students != null) {
 			for (UniStudent s: students) {
@@ -663,13 +619,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 			}
 		}
 		
-		// Usuń 
-		// (offset służy do rozwiązania problemu, w którym każda skasowana linijka zmniejsza indeks tych pod nią o 1)
-		int offset = 0;
-		for (int rowIdx: rowsToDelete) {
-			deleteTableRow(rowIdx - offset);
-			++offset;
-		}
+		tblData.deleteMultipleRows(rowsToDelete);
 	}
 	
 	private void resetFilterCriteria() {
@@ -704,27 +654,32 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 				unsavedChanges |= addStudent(id, firstName, lastName, group);
 			else {
 				// TODO Zapytaj się użytkownika, czy na pewno!
-				unsavedChanges |= updateStudent(queryStudent, firstName, lastName, group);
+				if (MessageBoxes.showConfirmationBox("Are you sure?", "Are you sure that you want to update student ".concat(queryStudent.toString()).concat("?")))
+					unsavedChanges |= updateStudent(queryStudent, firstName, lastName, group);
 				
 			}
 		} else if (source == btnDeselect) {
 			tblData.clearSelection();
+			updateWidgets();
 		} else if (source == btnDelete) {
 			int selectedIdx = tblData.getSelectedRow();
 			if (selectedIdx == -1) return;
-			int idVal = (Integer) tblData.getModel().getValueAt(selectedIdx, StudentTableHeaders.ID.ordinal());
+			int idVal = (Integer) tblData.getValueAt(selectedIdx, StudentTableHeaders.ID.ordinal());
+			
 			UniStudent toDelete = findById(idVal);
+			if (toDelete == null) return;
 			
-			// TODO zapytaj się użytkownika czy na pewno!
+			if (MessageBoxes.showConfirmationBox("Are you sure?", "Are you sure that you want to DELETE student ".concat(toDelete.toString()).concat("?"))) {
+				
+			}
 			unsavedChanges |= deleteStudent(toDelete);
-			deleteTableRow(selectedIdx);
+			tblData.deleteRow(selectedIdx);
 			tblData.clearSelection();
-			
 			updateIdSpinner();
 		} else if (source == btnEdit) {
 			int selectedIdx = tblData.getSelectedRow();
 			if (selectedIdx == -1) return;
-			int idVal = (Integer) tblData.getModel().getValueAt(selectedIdx, StudentTableHeaders.ID.ordinal());
+			int idVal = (Integer) tblData.getValueAt(selectedIdx, StudentTableHeaders.ID.ordinal());
 			UniStudent toUpdate = findById(idVal);
 			
 			if (toUpdate != null) {
@@ -732,7 +687,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 				String firstName = toUpdate.getFirstName();
 				String lastName = toUpdate.getLastName();
 				UniGroup group = groupAssignments.getOrDefault(toUpdate, null);
-				int groupIdx = group != null && groups != null ? groups.indexOf(group) : 0;
+				int groupIdx = (group != null && groups != null) ? groups.indexOf(group) : 0;
 				
 				JSpinner spnId = (JSpinner) formMap.get(StudentTableHeaders.ID); 
 				JTextField tfFirstName = (JTextField) formMap.get(StudentTableHeaders.FNAME);
@@ -763,5 +718,15 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 		synchronized (db) {
 			db.setStudentList(studentsToDB);
 		}
+		
+		unsavedChanges = false;
 	}
+
+
+	// Getters & setters
+	
+	public boolean isUnsavedChanges() {
+		return unsavedChanges;
+	}
+	
 }

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package pl.wit.studata.gui;
+package pl.wit.studata.gui.widgets;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
