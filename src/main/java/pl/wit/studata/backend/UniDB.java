@@ -25,7 +25,9 @@ public class UniDB {
 	private Map<UniClass, List<UniGroup>> classGroupMap;
 	private Map<UniStudent, Map<UniClass, Map<ClassCriterion, Integer>>> studentGradesMap; // Mapa ocen studentów
 
-	// Konstruktor
+	/**
+	 * Konstruktor bezparametryczny.
+	 */
 	public UniDB() {
 		this.studentList = new ArrayList<>();
 		this.groupList = new ArrayList<>();
@@ -38,7 +40,7 @@ public class UniDB {
 	/**
 	 * Metoda dodania studenta do grupy
 	 */
-	private void assignStudent(UniStudent student, UniGroup group) {
+	public void assignStudent(UniStudent student, UniGroup group) {
 		// Sprawdzenie, czy student i grupa istnieją w bazie danych
 		if (studentList.contains(student) && groupList.contains(group)) {
 			// Dodanie przypisania studenta do grupy
@@ -52,7 +54,7 @@ public class UniDB {
 	/*
 	 * Metoda dodania nowego przedmiotu do listy przedmiotów
 	 */
-	private void addClass(UniClass uniClass) {
+	public void addClass(UniClass uniClass) {
 		if (!classList.contains(uniClass)) {
 			classList.add(uniClass);
 		} else {
@@ -63,7 +65,7 @@ public class UniDB {
 	/*
 	 * Usuwanie studenta z wszystkich list
 	 */
-	private void deleteStudent(UniStudent student) {
+	public void deleteStudent(UniStudent student) {
 		if (studentList.contains(student)) {
 			studentList.remove(student);
 		}
@@ -78,7 +80,7 @@ public class UniDB {
 	/*
 	 * Metoda usuwania przedmiotu z wszystkich list
 	 */
-	private void deleteClass(UniClass uniClass) {
+	public void deleteClass(UniClass uniClass) {
 		if (classList.contains(uniClass)) {
 			classList.remove(uniClass);
 		}

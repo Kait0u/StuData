@@ -361,7 +361,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 			dbGroupAssignments = db.getStudentGroupMap();
 		}
 		
-		// Skopiuj listy z bazy do list lokalnych
+		// Skopiuj listy i mapy z bazy do lokalnych
 		synchronized (dbStudentList) {
 			students.addAll(dbStudentList);
 		}
@@ -369,7 +369,6 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 			groups.addAll(dbGroupList);
 		}
 		
-		// Zbuduj mapę przypisań
 		synchronized (dbGroupAssignments) {
 			groupAssignments.putAll(dbGroupAssignments);
 		}
@@ -459,14 +458,23 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 	private void updateGroupCombobox() {
 		@SuppressWarnings("unchecked")
 		JComboBox<String> cmbGroup = (JComboBox<String>) formMap.get(StudentTableHeaders.GROUP);
+		JComboBox<String> cmbGroupQuery = (JComboBox<String>) formQueryMap.get(StudentTableHeaders.GROUP);
+		
 		cmbGroup.removeAllItems();
+		cmbGroupQuery.removeAllItems();
 		
 		if (groups != null) 
 			for (UniGroup g: groups) {
 				cmbGroup.addItem(g.getGroupCode());
+				cmbGroupQuery.addItem(g.getGroupCode());
 			}
+		
 		cmbGroup.addItem(AppData.NONE_TEXT);
+		cmbGroupQuery.addItem(AppData.NONE_TEXT);
+		cmbGroupQuery.addItem(AppData.ANY_TEXT);
+		
 		cmbGroup.setSelectedIndex(cmbGroup.getItemCount() - 1);
+		cmbGroupQuery.setSelectedIndex(cmbGroupQuery.getItemCount() - 1);
 	}
 	
 	/**
@@ -604,7 +612,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 				criteriaMet &= val.contains(queryLName.toUpperCase());
 			}
 			if (criteriaMet && queryGroup != null) {
-				String val = ((String) row[StudentTableHeaders.GROUP.ordinal()]).toUpperCase();
+				String val = ((String) row[StudentTableHeaders.GROUP.ordinal()]);
 				criteriaMet &= val.equals(queryGroup);
 			}
 			
@@ -687,7 +695,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 				String firstName = toUpdate.getFirstName();
 				String lastName = toUpdate.getLastName();
 				UniGroup group = groupAssignments.getOrDefault(toUpdate, null);
-				int groupIdx = (group != null && groups != null) ? groups.indexOf(group) : 0;
+				int groupIdx = (group != null && groups != null) ? groups.indexOf(group) : -1;
 				
 				JSpinner spnId = (JSpinner) formMap.get(StudentTableHeaders.ID); 
 				JTextField tfFirstName = (JTextField) formMap.get(StudentTableHeaders.FNAME);
@@ -697,7 +705,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 				spnId.setValue(studentId);
 				tfFirstName.setText(firstName);
 				tfLastName.setText(lastName);
-				cmbGroup.setSelectedIndex(groupIdx);
+				cmbGroup.setSelectedIndex(groupIdx > -1 ? groupIdx : cmbGroup.getItemCount() - 1);
 			}
 		} else if (source == btnSearch) {
 			filterTable();
