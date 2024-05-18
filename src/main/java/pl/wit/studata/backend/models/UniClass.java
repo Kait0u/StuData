@@ -1,6 +1,6 @@
 package pl.wit.studata.backend.models;
 
-// Klasa reprezentująca przedmiot
+//Klasa reprezentująca przedmiot
 
 import java.util.List;
 

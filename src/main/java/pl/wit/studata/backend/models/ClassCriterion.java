@@ -2,7 +2,7 @@ package pl.wit.studata.backend.models;
 
 
 
-// Klasa reprezentująca dane kryterium oceniania
+//Klasa reprezentująca dane kryterium oceniania
 public class ClassCriterion {
 
 	// Zmienne
@@ -13,6 +13,16 @@ public class ClassCriterion {
 	public ClassCriterion(String criterionName, int maxPoints) {
 		this.criterionName = criterionName;
 		this.maxPoints = maxPoints;
+	}
+
+	/*
+	 * Metoda sprawdzająca czy podana ocena mieści się w kryterium
+	 */
+	public boolean validateScore(int score) {
+		if (0 <= score && score <= maxPoints) {
+			return true;
+		} else
+			return false;
 	}
 
 	// gettery i settery

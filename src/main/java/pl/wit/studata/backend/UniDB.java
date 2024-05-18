@@ -2,6 +2,7 @@ package pl.wit.studata.backend;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -16,7 +17,7 @@ public class UniDB {
 	private List<UniStudent> studentList;
 	private List<UniGroup> groupList;
 	private List<UniClass> classList;
-	private Map<UniGroup, List<UniStudent>> groupStudentMap;
+	private Map<UniStudent, UniGroup> studentGroupMap;
 	private Map<UniClass, List<UniGroup>> classGroupMap;
 	private Map<UniStudent, Map<UniClass, Map<ClassCriterion, Integer>>> studentGradesMap; // Mapa ocen studentów
 
@@ -25,7 +26,7 @@ public class UniDB {
 		this.studentList = new ArrayList<>();
 		this.groupList = new ArrayList<>();
 		this.classList = new ArrayList<>();
-		this.groupStudentMap = new HashMap<>();
+		this.studentGroupMap = new HashMap<>();
 		this.classGroupMap = new HashMap<>();
 		this.studentGradesMap = new HashMap<>();
 	}
@@ -33,20 +34,52 @@ public class UniDB {
 	/**
 	 * Metoda dodania studenta do grupy
 	 */
-	private void assignStudent(UniGroup group, UniStudent student, Map<UniGroup, List<UniStudent>> groupStudentMap) {
-		// Sprawdzenie, czy grupa istnieje w mapie
-		if (groupStudentMap.containsKey(group)) {
-			// Pobranie listy studentów dla danej grupy
-			List<UniStudent> studentsInGroup = groupStudentMap.get(group);
-			// Dodanie studenta do listy
-			studentsInGroup.add(student);
-			// Aktualizacja mapy
-			groupStudentMap.put(group, studentsInGroup);
+	private void assignStudent(UniStudent student, UniGroup group) {
+		// Sprawdzenie, czy student i grupa istnieją w bazie danych
+		if (studentList.contains(student) && groupList.contains(group)) {
+			// Dodanie przypisania studenta do grupy
+			studentGroupMap.put(student, group);
 		} else {
-			List<UniStudent> newStudentsInGroup = new ArrayList<>();
-			newStudentsInGroup.add(student);
-			// Dodanie nowej listy do mapy
-			groupStudentMap.put(group, newStudentsInGroup);
+			// Można dodać odpowiednią obsługę błędów, np. rzucenie wyjątku
+			throw new IllegalArgumentException("Student lub grupa nie istnieje w bazie danych.");
+		}
+	}
+
+	/*
+	 * Metoda dodania nowego przedmiotu do listy przedmiotów
+	 */
+	private void addClass(UniClass uniClass) {
+		if (!classList.contains(uniClass)) {
+			classList.add(uniClass);
+		} else {
+			throw new IllegalArgumentException("Ten przedmiot jest już dodany do bazy danych");
+		}
+	}
+
+	/*
+	 * Usuwanie studenta z wszystkich list
+	 */
+	private void deleteStudent(UniStudent student) {
+		if (studentList.contains(student)) {
+			studentList.remove(student);
+		}
+		if (studentGroupMap.containsKey(student)) {
+			studentGroupMap.remove(student);
+		}
+		if (studentGradesMap.containsKey(student)) {
+			studentGradesMap.remove(student);
+		}
+	}
+
+	/*
+	 * Metoda usuwania przedmiotu z wszystkich list
+	 */
+	private void deleteClass(UniClass uniClass) {
+		if (classList.contains(uniClass)) {
+			classList.remove(uniClass);
+		}
+		if (classGroupMap.containsKey(uniClass)) {
+			classGroupMap.remove(uniClass);
 		}
 	}
 
@@ -85,6 +118,34 @@ public class UniDB {
 
 	}
 
+	/*
+	 * Metody aktualizujące poszczególne listy
+	 */
+	public void updateStudents(List<UniStudent> newStudentList) {
+		this.studentList = new LinkedList<>(newStudentList);
+	}
+
+	public void updateGroups(List<UniGroup> newGroupList) {
+		this.groupList = new LinkedList<>(newGroupList);
+	}
+
+	public void updateClasses(List<UniClass> newClassList) {
+		this.classList = new LinkedList<>(newClassList);
+	}
+
+	public void updateStudentGroupMap(Map<UniStudent, UniGroup> newStudentGroupMap) {
+		this.studentGroupMap = new HashMap<>(newStudentGroupMap);
+	}
+
+	public void updateClassGroupMap(Map<UniClass, List<UniGroup>> newClassGroupMap) {
+		this.classGroupMap = new HashMap<>(newClassGroupMap);
+	}
+
+	public void updateStudentGradesMap(
+			Map<UniStudent, Map<UniClass, Map<ClassCriterion, Integer>>> newStudentGradesMap) {
+		this.studentGradesMap = new HashMap<>(newStudentGradesMap);
+	}
+
 	// gettery i settery
 	public List<UniStudent> getStudentList() {
 		return studentList;
@@ -110,8 +171,12 @@ public class UniDB {
 		this.classList = classList;
 	}
 
-	public Map<UniGroup, List<UniStudent>> getGroupStudentMap() {
-		return groupStudentMap;
+	public Map<UniStudent, UniGroup> getStudentGroupMap() {
+		return studentGroupMap;
+	}
+
+	public Map<UniStudent, Map<UniClass, Map<ClassCriterion, Integer>>> getStudentGradesMap() {
+		return studentGradesMap;
 	}
 
 	public Map<UniClass, List<UniGroup>> getClassGroupMap() {

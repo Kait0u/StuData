@@ -178,7 +178,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 				}).toArray(String[]::new);
 		
 		tblData = new TableWidget(headers);
-		
+		tblData.setAutoCreateRowSorter(true);
 		tblData.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
 		scrlTblData = new JScrollPane(tblData);
@@ -284,7 +284,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 		pnlBotCards.add(pnlCrUpDel, CREATE_FORM_STR);
 		
 		// Panel do poszukiwań
-		pnlQuery = new JPanel();
+		pnlQuery = new JPanel(new GridLayout(1, 1));
 		FormWidget formQuery = new FormWidget();
 		
 		formQueryMap = new LinkedHashMap<>();
@@ -352,13 +352,13 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 		
 		List<UniStudent> dbStudentList = null;
 		List<UniGroup> dbGroupList = null;
-		Map<UniGroup, List<UniStudent>> dbGroupAssignments = null;
+		Map<UniStudent, UniGroup> dbGroupAssignments = null;
 		
 		// Pobierz listę studentów i mapę przypisań z bazy danych.
 		synchronized (db) {
 			dbStudentList = db.getStudentList();
 			dbGroupList = db.getGroupList();
-			dbGroupAssignments = db.getGroupStudentMap();
+			dbGroupAssignments = db.getStudentGroupMap();
 		}
 		
 		// Skopiuj listy z bazy do list lokalnych
@@ -371,28 +371,18 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 		
 		// Zbuduj mapę przypisań
 		synchronized (dbGroupAssignments) {
-			for (UniStudent s: students) {
-				UniGroup group = null;
-				for (Map.Entry<UniGroup, List<UniStudent>> entry: dbGroupAssignments.entrySet()) {
-					UniGroup g = entry.getKey();
-					List<UniStudent> groupMembers = entry.getValue();
-					if (groupMembers.contains(s)) {
-						group = g;
-						break;
-					}
-				}
-				groupAssignments.put(s, group);
-			}
+			groupAssignments.putAll(dbGroupAssignments);
 		}
 	}
 	
 	/**
-	 * Metoda dodająca wiersz do tabeli na podstawie istniejącego Studenta i Grupy.
+	 * Metoda dodająca wiersz do tabeli na podstawie istniejącego Studenta.
 	 * @param s Student do dodania.
-	 * @param g Grupa z którą skojarzony jest student.
 	 */
-	private void addTableRow(UniStudent s, UniGroup g) {
+	private void addTableRow(UniStudent s) {
 		if (s == null) return;
+		
+		UniGroup g = groupAssignments.getOrDefault(s, null);
 		
 		Object[] rowData = new Object[] {
 			s.getStudentId(),
@@ -405,12 +395,15 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 	}
 	
 	/**
-	 * Aktualizuje wiersz w tabeli o zadanym indeksie informacjami o studencie i grupie.
-	 * @param rowIdx
+	 * Aktualizuje wiersz w tabeli o zadanym indeksie informacjami o studencie.
+	 * @param rowIdx Indeks wiersza.
+	 * @param s Student.
 	 */
-	private void updateTableRow(int rowIdx, UniStudent s, UniGroup g) {
+	private void updateTableRow(int rowIdx, UniStudent s) {
 		if (s == null) return;
 		
+		UniGroup g = groupAssignments.getOrDefault(s, null);
+				
 		Object[] rowData = new Object[] {
 				s.getStudentId(),
 				s.getFirstName(),
@@ -445,7 +438,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 		
 		if (students != null) {
 			for (UniStudent s: students) {
-				addTableRow(s, groupAssignments.get(s));
+				addTableRow(s);
 			}
 		} 
 			
@@ -511,7 +504,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 		if (group != null)
 			groupAssignments.put(s, group);
 		
-		addTableRow(s, group);
+		addTableRow(s);
 		updateIdSpinner();
 		
 		return true;
@@ -558,7 +551,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 		
 		int rowIdx = getRowIdx(toUpdate);
 		
-		updateTableRow(rowIdx, toUpdate, group);
+		updateTableRow(rowIdx, toUpdate);
 		
 		return true;
 	}
@@ -596,20 +589,22 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 		
 		for (int rowIdx = 0; rowIdx < tblData.getRowCount(); ++rowIdx) {
 			boolean criteriaMet = true;
+			Object[] row = tblData.getRow(rowIdx);
+			
 			if (criteriaMet && idQuery != null) {
-				Integer val = (Integer) tblData.getValueAt(rowIdx, StudentTableHeaders.ID.ordinal());
+				Integer val = (Integer) row[StudentTableHeaders.ID.ordinal()];
 				criteriaMet &= val.equals(idQuery);
 			}
 			if (criteriaMet && queryFName != null) {
-				String val = ((String) tblData.getValueAt(rowIdx, StudentTableHeaders.FNAME.ordinal())).toUpperCase();
+				String val = ((String) row[StudentTableHeaders.FNAME.ordinal()]).toUpperCase();
 				criteriaMet &= val.contains(queryFName.toUpperCase());
 			}
 			if (criteriaMet && queryLName != null) {
-				String val = ((String) tblData.getValueAt(rowIdx, StudentTableHeaders.LNAME.ordinal())).toUpperCase();
+				String val = ((String) row[StudentTableHeaders.LNAME.ordinal()]).toUpperCase();
 				criteriaMet &= val.contains(queryLName.toUpperCase());
 			}
 			if (criteriaMet && queryGroup != null) {
-				String val = ((String) tblData.getValueAt(rowIdx, StudentTableHeaders.GROUP.ordinal())).toUpperCase();
+				String val = ((String) row[StudentTableHeaders.GROUP.ordinal()]).toUpperCase();
 				criteriaMet &= val.equals(queryGroup);
 			}
 			
@@ -653,7 +648,6 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 			if (queryStudent == null)
 				unsavedChanges |= addStudent(id, firstName, lastName, group);
 			else {
-				// TODO Zapytaj się użytkownika, czy na pewno!
 				if (MessageBoxes.showConfirmationBox("Are you sure?", "Are you sure that you want to update student ".concat(queryStudent.toString()).concat("?")))
 					unsavedChanges |= updateStudent(queryStudent, firstName, lastName, group);
 				
@@ -663,22 +657,28 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 			updateWidgets();
 		} else if (source == btnDelete) {
 			int selectedIdx = tblData.getSelectedRow();
-			if (selectedIdx == -1) return;
+			if (selectedIdx == -1) {
+				MessageBoxes.showInfoBox("No selection!", "Please select a row first!");
+				return;
+			}
 			int idVal = (Integer) tblData.getValueAt(selectedIdx, StudentTableHeaders.ID.ordinal());
 			
 			UniStudent toDelete = findById(idVal);
 			if (toDelete == null) return;
 			
 			if (MessageBoxes.showConfirmationBox("Are you sure?", "Are you sure that you want to DELETE student ".concat(toDelete.toString()).concat("?"))) {
-				
+				unsavedChanges |= deleteStudent(toDelete);
+				tblData.deleteRow(selectedIdx);
+				tblData.clearSelection();
+				updateIdSpinner();
 			}
-			unsavedChanges |= deleteStudent(toDelete);
-			tblData.deleteRow(selectedIdx);
-			tblData.clearSelection();
-			updateIdSpinner();
 		} else if (source == btnEdit) {
 			int selectedIdx = tblData.getSelectedRow();
-			if (selectedIdx == -1) return;
+			if (selectedIdx == -1) {
+				MessageBoxes.showInfoBox("No selection!", "Please select a row first!");
+				return;
+			}
+			
 			int idVal = (Integer) tblData.getValueAt(selectedIdx, StudentTableHeaders.ID.ordinal());
 			UniStudent toUpdate = findById(idVal);
 			
