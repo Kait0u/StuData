@@ -1,10 +1,15 @@
 package pl.wit.studata.backend.models;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+
 //Klasa reprezentująca przedmiot
 
 import java.util.List;
 
-public class UniClass {
+import pl.wit.studata.backend.fileio.Serializable;
+
+public class UniClass implements Serializable {
 
 	// Zmienne
 	private String className;
@@ -36,6 +41,42 @@ public class UniClass {
 
 	public void setCriteriaList(List<ClassCriterion> criteriaList) {
 		this.criteriaList = criteriaList;
+	}
+
+	// zapis do pliku
+	public void saveToFile(DataOutputStream dout) throws Exception {
+		dout.writeUTF(getClass().getSimpleName());
+		dout.writeUTF(className);
+		dout.writeInt(criteriaList.size());
+		for (ClassCriterion cr : criteriaList) {
+			cr.saveToFile(dout);
+		}
+	}
+
+	public void saveMapElem(DataOutputStream dout) throws Exception {
+		dout.writeUTF(className);
+	}
+
+	public void loadFromFile(DataInputStream din) throws Exception {
+		// className = din.readUTF();
+		int listLen = din.readInt();
+
+		for (int i = 0; i < listLen; ++i) {
+			String shortName = din.readUTF();
+			ClassCriterion cr = new ClassCriterion("", 0);
+			cr.loadFromFile(din);
+			criteriaList.add(cr);
+		}
+
+	}
+
+	public static UniClass loadMapRef(DataInputStream din, List<UniClass> l) throws Exception {
+		String name = din.readUTF();
+		for (UniClass cc : l) {
+			if (cc.getClassName() == name)
+				return cc;
+		}
+		return null;
 	}
 
 }

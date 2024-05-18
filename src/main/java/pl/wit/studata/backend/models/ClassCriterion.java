@@ -1,9 +1,13 @@
 package pl.wit.studata.backend.models;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.util.List;
 
+import pl.wit.studata.backend.fileio.Serializable;
 
 //Klasa reprezentująca dane kryterium oceniania
-public class ClassCriterion {
+public class ClassCriterion implements Serializable {
 
 	// Zmienne
 	private String criterionName;
@@ -41,5 +45,30 @@ public class ClassCriterion {
 	public void setMaxPoints(int maxPoints) {
 		this.maxPoints = maxPoints;
 	}
+	
+	// zapis do pliku
+		public void saveToFile(DataOutputStream dout) throws Exception{
+			dout.writeUTF(getClass().getSimpleName());
+			dout.writeUTF(criterionName);
+			dout.writeInt(maxPoints);
+		}
+		
+		public void saveMapElem(DataOutputStream dout) throws Exception{
+			dout.writeUTF(criterionName);
+		}
+		
+		public void loadFromFile(DataInputStream din) throws Exception{
+			//din.readUTF();
+			criterionName = din.readUTF();
+			maxPoints = din.readInt();
+		}
+		
+		public static ClassCriterion loadMapRef(DataInputStream din, List<ClassCriterion> l) throws Exception {
+			String name = din.readUTF();
+			for(ClassCriterion cc: l) {
+				if(cc.getCriterionName() == name) return cc;
+			}
+			return null;
+		}
 
 }
