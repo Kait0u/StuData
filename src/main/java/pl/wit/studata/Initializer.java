@@ -19,7 +19,6 @@ public class Initializer {
 	}
 	
 	public static void initialize() {
-		// TODO Zacznij od wczytania configa.
 		Config.loadFromFile();
 		InternalData.setupFromConfig();
 	}

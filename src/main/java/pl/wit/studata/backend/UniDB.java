@@ -3,9 +3,7 @@ package pl.wit.studata.backend;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,7 +32,7 @@ public class UniDB {
 	private List<UniGroup> groupList;
 	private List<UniClass> classList;
 	private Map<UniStudent, UniGroup> studentGroupMap;
-	private Map<UniClass, List<UniGroup>> classGroupMap;
+	private Map<UniClass, List<ClassCriterion>> classCriterionMap;
 	private Map<UniStudent, Map<UniClass, Map<ClassCriterion, Integer>>> studentGradesMap; // Mapa ocen studentów
 
 	/**
@@ -45,7 +43,7 @@ public class UniDB {
 		this.groupList = new ArrayList<>();
 		this.classList = new ArrayList<>();
 		this.studentGroupMap = new HashMap<>();
-		this.classGroupMap = new HashMap<>();
+		this.classCriterionMap = new HashMap<>();
 		this.studentGradesMap = new HashMap<>();
 	}
 
@@ -96,8 +94,8 @@ public class UniDB {
 		if (classList.contains(uniClass)) {
 			classList.remove(uniClass);
 		}
-		if (classGroupMap.containsKey(uniClass)) {
-			classGroupMap.remove(uniClass);
+		if (classCriterionMap.containsKey(uniClass)) {
+			classCriterionMap.remove(uniClass);
 		}
 	}
 
@@ -141,6 +139,10 @@ public class UniDB {
 	 */
 	public void updateStudents(List<UniStudent> newStudentList) {
 		this.studentList = new LinkedList<>(newStudentList);
+		
+		studentGroupMap.entrySet().removeIf(entry -> !this.studentList.contains(entry.getKey()));
+		studentGradesMap.entrySet().removeIf(entry -> !this.studentList.contains(entry.getKey()));
+		
 	}
 
 	public void updateGroups(List<UniGroup> newGroupList) {
@@ -160,14 +162,33 @@ public class UniDB {
 
 	public void updateClasses(List<UniClass> newClassList) {
 		this.classList = new LinkedList<>(newClassList);
+		
+		
+		// Usuń nieważne klucze.
+		classCriterionMap.entrySet().removeIf(entry -> !this.classList.contains(entry.getKey()));
+		
+		
+		for( UniStudent student: studentGradesMap.keySet()) {
+			Map<UniClass, Map<ClassCriterion, Integer>> val = studentGradesMap.get(student);
+			val.entrySet().removeIf(entry -> !this.classList.contains(entry.getKey()));
+		}
+		
 	}
 
 	public void updateStudentGroupMap(Map<UniStudent, UniGroup> newStudentGroupMap) {
 		this.studentGroupMap = new HashMap<>(newStudentGroupMap);
 	}
 
-	public void updateClassGroupMap(Map<UniClass, List<UniGroup>> newClassGroupMap) {
-		this.classGroupMap = new HashMap<>(newClassGroupMap);
+	public void updateClassCriterionMap(Map<UniClass, List<ClassCriterion>> newClassCriterionMap) {
+		this.classCriterionMap = new HashMap<>(newClassCriterionMap);
+		
+		for( UniStudent student: studentGradesMap.keySet()) {
+			Map<UniClass, Map<ClassCriterion, Integer>> val = studentGradesMap.get(student);
+			for (UniClass key: val.keySet()) {
+				Map<ClassCriterion, Integer> mark = val.get(key);
+				mark.entrySet().removeIf(entry -> !classCriterionMap.get(key).contains(entry.getKey()));
+			}
+		}
 	}
 
 	public void updateStudentGradesMap(
@@ -208,8 +229,8 @@ public class UniDB {
 		return studentGradesMap;
 	}
 
-	public Map<UniClass, List<UniGroup>> getClassGroupMap() {
-		return classGroupMap;
+	public Map<UniClass, List<ClassCriterion>> getClassCriterionMap() {
+		return classCriterionMap;
 	}
 	
 	
@@ -241,33 +262,33 @@ public class UniDB {
 		}
 	}
 	
-	private void loadClassGroupMap(DataInputStream din) throws Exception {
+	private void loadClassCriterionMap(DataInputStream din) throws Exception {
 		int mapLen = din.readInt();
 		for(int i = 0; i < mapLen; ++i) {
 			UniClass key = UniClass.loadMapRef(din, classList);
-			List<UniGroup> list = new ArrayList<UniGroup>();
+			List<ClassCriterion> list = new ArrayList<ClassCriterion>();
 			int listLen = din.readInt();
 			for(int j = 0; j < listLen; ++j) {
-				UniGroup val = UniGroup.loadMapRef(din, groupList);
+				ClassCriterion val = (ClassCriterion)Serializer.loadObj(din);
 				if(val != null) {
 					list.add(val);
 				}
 			}
 			if(key != null) {
-				classGroupMap.put(key, list);
+				classCriterionMap.put(key, list);
 			}
 		}
 	}
 	
-	private void saveClassGroupMap(DataOutputStream dout) throws Exception {
-		dout.writeInt(classGroupMap.keySet().size());
-		for(UniClass key: classGroupMap.keySet()) {
+	private void saveClassCriterionMap(DataOutputStream dout) throws Exception {
+		dout.writeInt(classCriterionMap.keySet().size());
+		for(UniClass key: classCriterionMap.keySet()) {
 			key.saveMapElem(dout);
-			List<UniGroup> groups = classGroupMap.get(key);
-			dout.writeInt(groups.size());
+			List<ClassCriterion> criteria = classCriterionMap.get(key);
+			dout.writeInt(criteria.size());
 			
-			for(UniGroup gr: groups) {
-				gr.saveMapElem(dout);
+			for(ClassCriterion gr: criteria) {
+				gr.saveToFile(dout);
 			}
 		}
 	}
@@ -375,7 +396,7 @@ public class UniDB {
 		saveClassList(dout);
 		
 		
-		saveClassGroupMap(dout);
+		saveClassCriterionMap(dout);
 		saveStudentGroupMap(dout);
 		saveStudentGradesMap(dout);
 			
@@ -393,7 +414,7 @@ public class UniDB {
 		loadClassesFromFile(din);
 		
 
-		loadClassGroupMap(din);
+		loadClassCriterionMap(din);
 		loadStudentGroupMap(din);
 		loadStudentGradesMap(din);
 	}

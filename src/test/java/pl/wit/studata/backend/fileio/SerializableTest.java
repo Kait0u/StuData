@@ -33,7 +33,7 @@ public class SerializableTest {
 		db.getStudentList().add(st);
 		db.getGroupList().add(gr);
 		db.getClassList().add(cl);
-		db.getClassGroupMap().put(cl, Arrays.asList(gr));
+		db.getClassCriterionMap().put(cl, criteria);
 		db.getStudentGroupMap().put(st, gr);
 
 		db.addGradeToStudent(st, cl, cr2, 4);
@@ -67,14 +67,13 @@ public class SerializableTest {
 		}
 		
 		// check class-group map
-		for(UniClass key: db2.getClassGroupMap().keySet()) {
-			System.out.println("Class-Group pair: ");
+		for(UniClass key: db2.getClassCriterionMap().keySet()) {
+			System.out.println("Class-Criteria pair: ");
 			System.out.println(key.getClassName());
 			
-			for(UniGroup group: db2.getClassGroupMap().get(key)) {
-				System.out.println(group.getGroupCode());
-				System.out.println(group.getDescription());
-				System.out.println(group.getSpecialization());
+			for(ClassCriterion criterion: db2.getClassCriterionMap().get(key)) {
+				System.out.println(criterion.getCriterionName());
+				System.out.println(criterion.getMaxPoints());
 			}
 		}
 
@@ -94,6 +93,8 @@ public class SerializableTest {
 		
 		Map<UniClass, Map<ClassCriterion, Integer>> m = db2.getStudentGradesMap().get(st);
 		Map<ClassCriterion, Integer> mm = m.get(cl);
+		
+		db2.updateClasses(new ArrayList<UniClass>());
 		System.out.println(mm.get(cr2));
 		
 	}
