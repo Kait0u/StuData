@@ -9,4 +9,5 @@ package pl.wit.studata;
  */
 public class Config {
 	public static int THREADPOOL_SIZE = 4;
+	public static String DB_PATH = "./database/data.studata";
 }

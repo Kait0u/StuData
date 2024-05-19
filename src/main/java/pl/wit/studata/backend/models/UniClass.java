@@ -6,22 +6,53 @@ import java.io.DataOutputStream;
 //Klasa reprezentująca przedmiot
 
 import java.util.List;
+import java.util.Objects;
 
 import pl.wit.studata.backend.fileio.Serializable;
 
+/**
+ * Klasa reprezentująca przedmiot
+ * 
+ * @author Karol Wojtyra
+ * @author Aliaksei Harbuz
+ */
 public class UniClass implements Serializable {
 
-	// Zmienne
-	private String className;
+	/**
+	 * Zmienne
+	 */
+	private String className, code;
+
 	private List<ClassCriterion> criteriaList;
 
-	// Konstruktor
-	public UniClass(String className, List<ClassCriterion> criteriaList) {
+	/*
+	 * Metoda toString zwracająca reprezentację obiektu UniStudent w formie łańcucha
+	 * znaków
+	 */
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("[").append(code).append("] ").append(className);
+		return sb.toString();
+	}
+
+	/**
+	 * Konstruktor
+	 * 
+	 * @param className    Nazwa przedmiotu
+	 * @param code         Kod przedmiotu
+	 * @param criteriaList Lista kryteriów
+	 */
+	public UniClass(String className, String code, List<ClassCriterion> criteriaList) {
 		this.className = className;
+		this.code = code;
 		this.criteriaList = criteriaList;
 	}
 
-	// Metoda dodająca kryterium oceniania
+	/**
+	 * Metoda dodająca kryterium do listy
+	 * 
+	 * @param criterion Kryterium
+	 */
 	public void addCriterion(ClassCriterion criterion) {
 		criteriaList.add(criterion);
 	}
@@ -43,7 +74,31 @@ public class UniClass implements Serializable {
 		this.criteriaList = criteriaList;
 	}
 
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
+
 	// zapis do pliku
+	@Override
+	public boolean equals(Object o) {
+		if (o == this)
+			return true;
+		if (!(o instanceof UniClass))
+			return false;
+
+		UniClass other = (UniClass) o;
+		return other.getClassName().equals(className) && other.getCriteriaList().equals(criteriaList);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(className, criteriaList);
+	}
+
 	public void saveToFile(DataOutputStream dout) throws Exception {
 		dout.writeUTF(getClass().getSimpleName());
 		dout.writeUTF(className);

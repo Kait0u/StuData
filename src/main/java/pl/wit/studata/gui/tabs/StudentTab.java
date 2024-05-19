@@ -29,6 +29,7 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 
 import pl.wit.studata.AppData;
 import pl.wit.studata.InternalData;
@@ -37,15 +38,16 @@ import pl.wit.studata.backend.models.UniGroup;
 import pl.wit.studata.backend.models.UniStudent;
 import pl.wit.studata.gui.MessageBoxes;
 import pl.wit.studata.gui.enums.StudentTableHeaders;
-import pl.wit.studata.gui.interfaces.IDatabasePusher;
+import pl.wit.studata.gui.interfaces.IDatabaseInteractor;
 import pl.wit.studata.gui.widgets.FormWidget;
+
 import pl.wit.studata.gui.widgets.TableWidget;
 
 /**
  * Klasa opisująca zakładkę "Student"
  * @author Jakub Jaworski
  */
-public class StudentTab extends JPanel implements ActionListener, IDatabasePusher {
+public class StudentTab extends JPanel implements ActionListener, IDatabaseInteractor {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -151,7 +153,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 	
 	// [Różne]
 	
-	// Zmienne wewnętrzne do 
+	// Zmienne wewnętrzne 
 	private static final String CREATE_FORM_STR = "Create";
 	private static final String SEARCH_FORM_STR = "Search";
 	
@@ -495,7 +497,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 	}
 	
 	/**
-	 * Metoda dodająca studenta, o ile student o takim ID już nie istnieje
+	 * Metoda dodająca studenta.
 	 * @param id ID studenta.
 	 * @param firstName Imię studenta.
 	 * @param lastName Nazwisko studenta.
@@ -722,19 +724,35 @@ public class StudentTab extends JPanel implements ActionListener, IDatabasePushe
 		Map<UniStudent, UniGroup> groupAssignmentsToDB = new HashMap<UniStudent, UniGroup>(groupAssignments);
 		
 		UniDB db = InternalData.DATABASE;
+		Thread tStudents = new Thread(() -> db.updateStudents(studentsToDB));
+		Thread tGroupMap = new Thread(() -> db.updateStudentGroupMap(groupAssignmentsToDB));
 		
 		synchronized (db) {
-			db.setStudentList(studentsToDB);
+			InternalData.EXECUTOR.execute(tStudents);
+			InternalData.EXECUTOR.execute(tGroupMap);
 		}
 		
-		unsavedChanges = false;
+		try {
+			tStudents.join();
+			tGroupMap.join();
+			unsavedChanges = false;
+		} catch (InterruptedException ex) {
+			StringBuilder sb = new StringBuilder("Something went wrong saving changes to the database!");
+			sb.append('\n').append(ex.getMessage());
+			MessageBoxes.showErrorBox("Error!", sb.toString());
+		}
+		
 	}
 
-
-	// Getters & setters
-	
-	public boolean isUnsavedChanges() {
+	@Override
+	public boolean hasUnsavedChanges() {
 		return unsavedChanges;
+	}
+
+	@Override
+	public void nullifyChanges() {
+		unsavedChanges = false;
+		update();
 	}
 	
 }

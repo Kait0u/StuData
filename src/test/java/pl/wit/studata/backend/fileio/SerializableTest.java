@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -25,21 +26,20 @@ public class SerializableTest {
 		ClassCriterion cr = new ClassCriterion("Criterion 1", 5);
 		ClassCriterion cr2 = new ClassCriterion("Criterion 2", 5);
 		List<ClassCriterion> criteria = Arrays.asList(cr, cr2);
-		UniClass cl = new UniClass("Class 1", criteria);
+		UniClass cl = new UniClass("Class 1", "CL1", criteria);
 		UniStudent st = new UniStudent("Name", "Surname", 123);
+		
 		
 		db.getStudentList().add(st);
 		db.getGroupList().add(gr);
 		db.getClassList().add(cl);
-//		db.getGroupStudentMap().put(gr, Arrays.asList(st));
 		db.getClassGroupMap().put(cl, Arrays.asList(gr));
-		
+		db.getStudentGroupMap().put(st, gr);
+
+		db.addGradeToStudent(st, cl, cr2, 4);
 		// write test
 		try {
-			FileOutputStream fs = new FileOutputStream(outPath);
-			DataOutputStream out = new DataOutputStream(fs);
-			
-			db.saveToFile(out);
+			db.saveToFile(outPath);
 		}
 		catch(Exception ex){
 			System.out.print(ex.getMessage());
@@ -47,23 +47,36 @@ public class SerializableTest {
 		
 		
 		try {
-			FileInputStream fs = new FileInputStream(outPath);
-			DataInputStream in = new DataInputStream(fs);
-			
-			db2.loadFromFile(in);
+			db2.loadFromFile(outPath);
 		}
 		catch(Exception ex){
 			System.out.println(ex.getMessage());
 		}
 		
-		for(UniGroup g: db2.getGroupList()) {
-			System.out.println("UniGroup: ");
-			System.out.println(g.toString());
-			System.out.println(g.getGroupCode());
-			System.out.println(g.getDescription());
-			System.out.println(g.getSpecialization());
+		
+		// check student-group map
+		for(UniStudent stud: db2.getStudentGroupMap().keySet()) {
+			System.out.println("Student-Group pair: ");
+			System.out.println(stud.getFirstName());
+			System.out.println(stud.getLastName());
+			
+			UniGroup mGr = db2.getStudentGroupMap().get(stud);
+			System.out.println(mGr.getGroupCode());
+			System.out.println(mGr.getDescription());
+			System.out.println(mGr.getSpecialization());
 		}
 		
+		// check class-group map
+		for(UniClass key: db2.getClassGroupMap().keySet()) {
+			System.out.println("Class-Group pair: ");
+			System.out.println(key.getClassName());
+			
+			for(UniGroup group: db2.getClassGroupMap().get(key)) {
+				System.out.println(group.getGroupCode());
+				System.out.println(group.getDescription());
+				System.out.println(group.getSpecialization());
+			}
+		}
 
 		for(UniClass c: db2.getClassList()) {
 			System.out.println(c.toString());
@@ -78,6 +91,10 @@ public class SerializableTest {
 			System.out.println(s.getFirstName());
 			System.out.println(s.getLastName());
 		}
+		
+		Map<UniClass, Map<ClassCriterion, Integer>> m = db2.getStudentGradesMap().get(st);
+		Map<ClassCriterion, Integer> mm = m.get(cl);
+		System.out.println(mm.get(cr2));
 		
 	}
 

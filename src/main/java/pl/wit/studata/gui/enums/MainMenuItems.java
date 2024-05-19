@@ -8,6 +8,7 @@ package pl.wit.studata.gui.enums;
  */
 public enum MainMenuItems {
 	SAVE("Save"),
+	REFRESH("Refresh"),
 	CONFIG("Config"),
 	QUIT("Quit");
 	

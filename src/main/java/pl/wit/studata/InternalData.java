@@ -3,10 +3,18 @@
  */
 package pl.wit.studata;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.swing.JFrame;
+
 import pl.wit.studata.backend.UniDB;
+import pl.wit.studata.gui.MessageBoxes;
 
 /**
  * Klasa przechowująca wewnętrzne referencje do obiektów, od których wymaga się, by móc uzyskać do nich referencję z każdego miejsca w programie. 
@@ -20,16 +28,91 @@ public class InternalData {
 	public static UniDB DATABASE = null;
 	
 	/**
+	 * Lokalizacja (ścieżka) bazy danych.
+	 */
+	public static String DATABASE_PATH = null;
+	
+	/**
+	 * Odniesienie do pliku bazy danych.
+	 */
+	
+	public static File DATABASE_FILE = null;
+	
+	/**
 	 * Referencja do egzekutora.
 	 */
 	public static ExecutorService EXECUTOR = null;
 	
 	/**
+	 * Lista otwartych okienek.
+	 */
+	public static List<JFrame> WINLIST = null;
+	
+	/**
+	 * Metoda inicjalizująca pola, które nie wymagają informacji zewnętrznych do inicjalizacji.
+	 */
+	private static void generalSetup() {
+		WINLIST = new LinkedList<JFrame>();
+	}
+	
+	/**
 	 * Metoda ustalająca wartości statycznych pól klasy, korzystając jak najwięcej z obiektu Config.
 	 */
 	public static void setupFromConfig() {
-		DATABASE = new UniDB();
+		generalSetup();
+		
 		EXECUTOR = Executors.newFixedThreadPool(Config.THREADPOOL_SIZE);
+		
+		// Postaw bazę danych.
+		DATABASE = new UniDB();
+		
+		DATABASE_FILE = new File(Config.DB_PATH);
+		DATABASE_FILE.getParentFile().mkdirs();
+		if (!DATABASE_FILE.exists()) {
+			try {
+				DATABASE_FILE.createNewFile();
+			} catch (IOException e) {
+				
+			}
+		}
+		DATABASE_PATH = Config.DB_PATH;
+		
+		try {
+			DATABASE.loadFromFile(DATABASE_PATH);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
+	/**
+	 * Dodaje obiekt okienka do listy otwartych okienek.
+	 * @param window
+	 */
+	public static void registerWindow(JFrame window) {
+		if (window != null)
+			WINLIST.add(window);
+	}
+	
+	/**
+	 * Usuwa wszystkie okienka.
+	 */
+	public static void destroyAllWindows() {
+		Collections.reverse(WINLIST);
+		
+		for (JFrame window: WINLIST) {
+			window.dispose();
+		}
+		
+		WINLIST.clear();
+	}
+	
+	public static void destroyWindow(JFrame window) {
+		if (window != null && WINLIST.contains(window)) {
+			WINLIST.remove(window);
+			window.dispose();
+		}
+	}
+	
+	
 }

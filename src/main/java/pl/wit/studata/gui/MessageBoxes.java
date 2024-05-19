@@ -39,4 +39,22 @@ public class MessageBoxes {
 		result = (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE));
 		return result;
 	}
+	
+	/**
+	 * Powołuje okienko informujące o programie i jego autorach.
+	 */
+	public static void showProgramInfoBox() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("StuData: mock academic database program.\n");
+		sb.append("A group credit project for Java Class.\n");
+		sb.append("\n").append("Team:").append("\n");
+		sb.append(" - Jakub Jaworski").append("\n");
+		sb.append(" - Karol Wojtyra").append("\n");
+		sb.append(" - Aliaksei Harbuz").append("\n");
+		sb.append(" - Iryna Mishchenko").append("\n");
+		sb.append(" - Karol Kapecki").append("\n").append("\n");
+		sb.append("2024, WIT Academy, Warsaw");
+		
+		showInfoBox("StuData", sb.toString());
+	}
 }

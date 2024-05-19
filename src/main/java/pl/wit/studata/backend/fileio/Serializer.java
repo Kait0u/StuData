@@ -15,12 +15,12 @@ public class Serializer {
 		Serializable s = null;
 		
 		switch(name) {
-		case "UniClass": s = new UniClass("", new ArrayList<ClassCriterion>()); break;
+		case "UniClass": s = new UniClass("", "", new ArrayList<ClassCriterion>()); break;
 		case "UniStudent": s = new UniStudent("", "", 0); break;
 		case "ClassCriterion": s = new ClassCriterion("", 0); break;
 		case "UniGroup": s = new UniGroup("", "", ""); break;
 		default: 
-			throw new Exception("SERIALIZER: wrong type - " + name);
+			throw new Exception("Wrong object type to load:" + name);
 		}
 		if(s != null) {
 			s.loadFromFile(din);

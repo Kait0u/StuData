@@ -2,11 +2,17 @@ package pl.wit.studata.backend;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import pl.wit.studata.backend.fileio.Serializable;
 import pl.wit.studata.backend.fileio.Serializer;
@@ -15,6 +21,12 @@ import pl.wit.studata.backend.models.UniClass;
 import pl.wit.studata.backend.models.UniGroup;
 import pl.wit.studata.backend.models.UniStudent;
 
+/**
+ * Klasa reprezentująca bazę danych
+ * 
+ * @author Karol Wojtyra
+ * @author Aliaksei Harbuz
+ */
 public class UniDB {
 
 	// Zmienne
@@ -43,7 +55,7 @@ public class UniDB {
 	public void assignStudent(UniStudent student, UniGroup group) {
 		// Sprawdzenie, czy student i grupa istnieją w bazie danych
 		if (studentList.contains(student) && groupList.contains(group)) {
-			// Dodanie przypisania studenta do grupy
+			//	 Dodanie przypisania studenta do grupy
 			studentGroupMap.put(student, group);
 		} else {
 			// Można dodać odpowiednią obsługę błędów, np. rzucenie wyjątku
@@ -133,6 +145,17 @@ public class UniDB {
 
 	public void updateGroups(List<UniGroup> newGroupList) {
 		this.groupList = new LinkedList<>(newGroupList);
+		
+		// Znajdź, kto jest w grupie, której już nie ma.
+		Set<UniStudent> keysToRemove = new HashSet<>();
+		for (Map.Entry<UniStudent, UniGroup> entry: studentGroupMap.entrySet()) {
+			if (!this.groupList.contains(entry.getValue()))
+				keysToRemove.add(entry.getKey());
+		}
+		
+		// Usuń nieważne klucze.
+		for (UniStudent key: keysToRemove)
+			this.studentGroupMap.remove(key);
 	}
 
 	public void updateClasses(List<UniClass> newClassList) {
@@ -189,6 +212,8 @@ public class UniDB {
 		return classGroupMap;
 	}
 	
+	
+	// zapis i odczyt z pliku
 	private void loadStudentsFromFile(DataInputStream din) throws Exception {
 		int listLen = din.readInt();
 		for(int i = 0; i < listLen; ++i) {
@@ -212,7 +237,7 @@ public class UniDB {
 		for(int i = 0; i < listLen; ++i) {
 			Serializable s = Serializer.loadObj(din);
 			if(s instanceof UniClass) classList.add((UniClass)s);
-			else throw new Exception("Object type isn't UniGroup");
+			else throw new Exception("Object type isn't UniClass");
 		}
 	}
 	
@@ -247,34 +272,24 @@ public class UniDB {
 		}
 	}
 	
-	private void loadGroupStudentMap(DataInputStream din) throws Exception {
-//		int mapLen = din.readInt();
-//		for(int i = 0; i < mapLen; ++i) {
-//			UniGroup key = UniGroup.loadMapRef(din, groupList);
-//			List<UniStudent> list = new ArrayList<UniStudent>();
-//			int listLen = din.readInt();
-//			for(int j = 0; j < listLen; ++j) {
-//				UniStudent val = UniStudent.loadMapRef(din, studentList);
-//				if(val != null) {
-//					list.add(val);
-//				}
-//			}
-//			if(key != null) {
-//				groupStudentMap.put(key, list);
-//			}
-//		}
+	private void loadStudentGroupMap(DataInputStream din) throws Exception {
+		int mapLen = din.readInt();
+		for(int i = 0; i < mapLen; ++i) {
+			UniStudent key = UniStudent.loadMapRef(din, studentList);
+			UniGroup gr = UniGroup.loadMapRef(din, groupList);
+			if(key != null && gr != null) {
+				studentGroupMap.put(key, gr);
+			}
+		}
 	}
 	
-	private void saveGroupStudentMap(DataOutputStream dout) throws Exception {
-//		dout.writeInt(groupStudentMap.size());
-//		for(UniGroup key: groupStudentMap.keySet()) {
-//			key.saveMapElem(dout);
-//			List<UniStudent> students = groupStudentMap.get(key);
-//			dout.writeInt(students.size());
-//			for(UniStudent s: students) {
-//				s.saveMapElem(dout);
-//			}
-//		}
+	private void saveStudentGroupMap(DataOutputStream dout) throws Exception {
+		dout.writeInt(studentGroupMap.size());
+		for(UniStudent key: studentGroupMap.keySet()) {
+			key.saveMapElem(dout);
+			UniGroup gr = studentGroupMap.get(key);
+			gr.saveMapElem(dout);
+		}
 	}
 	
 	private void loadStudentGradesMap(DataInputStream din) throws Exception {
@@ -324,53 +339,62 @@ public class UniDB {
 		}
 	}
 	
-	public void saveToFile(DataOutputStream dout) throws Exception{
-		try {
-
-			// zapis studentów
-			int listLen = studentList.size();
-			dout.writeInt(listLen);
-			for(UniStudent s: studentList) {
-				s.saveToFile(dout);
-			}
-			
-			// zapis grup
-			listLen = groupList.size();
-			dout.writeInt(listLen);
-			for(UniGroup s: groupList) {
-				s.saveToFile(dout);
-			}
-			
-			// zapis klas
-			listLen = classList.size();
-			dout.writeInt(listLen);
-			for(UniClass s: classList) {
-				s.saveToFile(dout);
-			}
-			
-			saveClassGroupMap(dout);
-			saveGroupStudentMap(dout);
-			saveStudentGradesMap(dout);
-			
-		}
-		catch(Exception ex) {
-			System.out.println("Exception when saving: " + ex.getMessage());
+	public void saveStudentList(DataOutputStream dout) throws Exception{
+		int listLen = studentList.size();
+		dout.writeInt(listLen);
+		for(UniStudent s: studentList) {
+			s.saveToFile(dout);
 		}
 	}
 	
-	public void loadFromFile(DataInputStream din) throws Exception{
-		try {
-			loadStudentsFromFile(din);
-			loadGroupsFromFile(din);
-			loadClassesFromFile(din);
+	public void saveGroupList(DataOutputStream dout) throws Exception{
+		int listLen = groupList.size();
+		dout.writeInt(listLen);
+		for(UniGroup s: groupList) {
+			s.saveToFile(dout);
+		}
+	}
+	
+	public void saveClassList(DataOutputStream dout) throws Exception{
+		int listLen = classList.size();
+		dout.writeInt(listLen);
+		for(UniClass s: classList) {
+			s.saveToFile(dout);
+		}
+	}
+	
+	public void saveToFile(String path) throws Exception{
+		FileOutputStream fs = new FileOutputStream(path);
+		DataOutputStream out = new DataOutputStream(fs);
+		saveToFile(out);
+	}
+	
+	public void saveToFile(DataOutputStream dout) throws Exception{
+		saveStudentList(dout);
+		saveGroupList(dout);
+		saveClassList(dout);
+		
+		
+		saveClassGroupMap(dout);
+		saveStudentGroupMap(dout);
+		saveStudentGradesMap(dout);
 			
+	}
+	
+	public void loadFromFile(String path) throws Exception{
+		FileInputStream fs = new FileInputStream(path);
+		DataInputStream in = new DataInputStream(fs);
+		loadFromFile(in);
+	}
+	
+	public void loadFromFile(DataInputStream din) throws Exception{
+		loadStudentsFromFile(din);
+		loadGroupsFromFile(din);
+		loadClassesFromFile(din);
+		
 
-			loadClassGroupMap(din);
-			loadGroupStudentMap(din);
-			loadStudentGradesMap(din);
-		}
-		catch(Exception ex){
-			System.out.println("Exception when loading: " + ex.getMessage());
-		}
+		loadClassGroupMap(din);
+		loadStudentGroupMap(din);
+		loadStudentGradesMap(din);
 	}
 }
