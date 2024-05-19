@@ -141,6 +141,7 @@ public class MainWindow extends JFrame {
 				menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
 				menuItem.addActionListener((e) -> updateCurrentTab());
 			case CONFIG:
+				menuItem.addActionListener((e) -> new ConfigDialog(this));
 				break;
 			case QUIT:
 				menuItem.setAccelerator(KeyStroke.getKeyStroke('Q', java.awt.event.InputEvent.CTRL_DOWN_MASK));

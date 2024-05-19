@@ -66,22 +66,25 @@ public class InternalData {
 		// Postaw bazę danych.
 		DATABASE = new UniDB();
 		
-		DATABASE_FILE = new File(Config.DB_PATH);
+		DATABASE_PATH = Config.DB_PATH;
+		DATABASE_FILE = new File(DATABASE_PATH);
 		DATABASE_FILE.getParentFile().mkdirs();
 		if (!DATABASE_FILE.exists()) {
 			try {
 				DATABASE_FILE.createNewFile();
 			} catch (IOException e) {
-				
 			}
 		}
-		DATABASE_PATH = Config.DB_PATH;
 		
 		try {
-			DATABASE.loadFromFile(DATABASE_PATH);
+			DATABASE.loadFromFile(DATABASE_FILE.getAbsolutePath());
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+
+		}
+		try {
+			
+		} catch (Exception e) {
+
 		}
 	}
 
