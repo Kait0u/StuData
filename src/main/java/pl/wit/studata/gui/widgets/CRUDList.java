@@ -32,9 +32,9 @@ public class CRUDList extends JPanel {
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new GridLayout(1, 3, 0, 0));
 
-        addButton = new JButton("+");
-        editButton = new JButton("✎");
-        deleteButton = new JButton("x");
+        addButton = new JButton("ADD");
+        editButton = new JButton("EDIT");
+        deleteButton = new JButton("REMOVE");
 
         buttonPanel.add(addButton);
         buttonPanel.add(editButton);
