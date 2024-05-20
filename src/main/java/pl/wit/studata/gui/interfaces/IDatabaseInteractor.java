@@ -7,7 +7,12 @@ package pl.wit.studata.gui.interfaces;
  * Interfejs ustalający metody potrzebne do wysłania obecnego stanu danych danej np. zakładki celem wysłania jej do bazy danych.
  * @author Jakub Jaworski
  */
-public interface IDatabaseInteractor {
+public interface IDatabaseInteractor { 
+	/**
+	 * Metoda, która pobiera dane z bazy danych do swoich kolekcji lokalnych.
+	 */
+	public void pullFromDB();
+	
 	/**
 	 * Metoda, która wysyła obecny stan obiektu do bazdy danych celem wprowadzenia w niej zmian trwałych.
 	 */
@@ -25,7 +30,12 @@ public interface IDatabaseInteractor {
 	public void nullifyChanges();
 	
 	/**
-	 * Metoda, która uaktualnia stan obiektu poprzez uaktualnienie danych ze źródła zewnętrznego.
+	 * Metoda, która uaktualnia stan obiektu poprzez uaktualnienie danych ze źródła zewnętrznego i ewentualne odświeżenie zasobów, które tego mogą wymagać.
 	 */
 	public void update();
+	
+	/**
+	 * Metoda, która uaktualnia stan obiektów oryginalnych do stanu ich kopii.
+	 */
+	public void merge();
 }

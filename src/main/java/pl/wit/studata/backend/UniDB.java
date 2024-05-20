@@ -235,6 +235,12 @@ public class UniDB {
 	
 	
 	// zapis i odczyt z pliku
+	
+	/**
+	 * Metoda pobierająca listę studentów ze strumienia.
+	 * @param din Strumień wejściowy.
+	 * @throws Exception
+	 */
 	private void loadStudentsFromFile(DataInputStream din) throws Exception {
 		int listLen = din.readInt();
 		for(int i = 0; i < listLen; ++i) {
@@ -244,6 +250,11 @@ public class UniDB {
 		}
 	}
 	
+	/**
+	 * Metoda pobierająca listę grup ze strumienia.
+	 * @param din Strumień wejściowy.
+	 * @throws Exception
+	 */
 	private void loadGroupsFromFile(DataInputStream din) throws Exception {
 		int listLen = din.readInt();
 		for(int i = 0; i < listLen; ++i) {
@@ -253,6 +264,11 @@ public class UniDB {
 		}
 	}
 	
+	/**
+	 * Metoda pobierająca listę przedmiotów ze strumienia.
+	 * @param din Strumień wejściowy.
+	 * @throws Exception
+	 */
 	private void loadClassesFromFile(DataInputStream din) throws Exception {
 		int listLen = din.readInt();
 		for(int i = 0; i < listLen; ++i) {
@@ -262,6 +278,12 @@ public class UniDB {
 		}
 	}
 	
+	/**
+	 * Metoda pobierająca cryteria, przydzielone do przedmiotów, ze strumienia i zapisująca ich do classCriterionMap.
+	 * Potrzebuje wypełnionej listy przedmiotów classList.
+	 * @param din Strumień wejściowy.
+	 * @throws Exception
+	 */
 	private void loadClassCriterionMap(DataInputStream din) throws Exception {
 		int mapLen = din.readInt();
 		for(int i = 0; i < mapLen; ++i) {
@@ -280,6 +302,7 @@ public class UniDB {
 		}
 	}
 	
+	
 	private void saveClassCriterionMap(DataOutputStream dout) throws Exception {
 		dout.writeInt(classCriterionMap.keySet().size());
 		for(UniClass key: classCriterionMap.keySet()) {
@@ -293,6 +316,12 @@ public class UniDB {
 		}
 	}
 	
+	/**
+	 * Metoda pobierająca przydział studentów do grup ze strumienia i zapisująca go do studentGroupMap.
+	 * Potrzebuje wypełnionych list studentów i grup (studentList oraz groupList).
+	 * @param din Strumień wejściowy.
+	 * @throws Exception
+	 */
 	private void loadStudentGroupMap(DataInputStream din) throws Exception {
 		int mapLen = din.readInt();
 		for(int i = 0; i < mapLen; ++i) {
@@ -304,6 +333,12 @@ public class UniDB {
 		}
 	}
 	
+	/**
+	 * Metoda zapisująca zawartość studentGroupMap do strumienia.
+	 * Metoda nie zapisuje całych obiektów UniStudent i UniGroup, tylko odpowiednio ich studentId i groupCode.
+	 * @param dout Strumień wyjściowy.
+	 * @throws Exception
+	 */
 	private void saveStudentGroupMap(DataOutputStream dout) throws Exception {
 		dout.writeInt(studentGroupMap.size());
 		for(UniStudent key: studentGroupMap.keySet()) {
@@ -313,6 +348,12 @@ public class UniDB {
 		}
 	}
 	
+	/**
+	 * Metoda zapisująca zawartość classCriterionMap do strumienia.
+	 * Metoda nie zapisuje całych obiektów UniClass, tylko ich nazwy.
+	 * @param din Strumień wejściowy.
+	 * @throws Exception
+	 */
 	private void loadStudentGradesMap(DataInputStream din) throws Exception {
 		int mapLen = din.readInt();
 		for(int i = 0; i < mapLen; ++i) {
@@ -340,6 +381,12 @@ public class UniDB {
 		}
 	}
 	
+	/**
+	 * Metoda zapisująca zawartość studentGradesMap do strumienia.
+	 * Metoda nie zapisuje całych obiektów UniStudent, UniClass lub ClassCriterion, tylko odpowiednio ich studentId, className oraz criterionName.
+	 * @param dout Strumień wyjściowy.
+	 * @throws Exception
+	 */
 	private void saveStudentGradesMap(DataOutputStream dout) throws Exception {
 		dout.writeInt(studentGradesMap.size());
 		for(UniStudent key: studentGradesMap.keySet()) {
@@ -360,6 +407,11 @@ public class UniDB {
 		}
 	}
 	
+	/**
+	 * Metoda zapisująca zawartość studentList do strumienia.
+	 * @param dout Strumień wyjściowy.
+	 * @throws Exception
+	 */
 	public void saveStudentList(DataOutputStream dout) throws Exception{
 		int listLen = studentList.size();
 		dout.writeInt(listLen);
@@ -368,6 +420,11 @@ public class UniDB {
 		}
 	}
 	
+	/**
+	 * Metoda zapisująca zawartość groupList do strumienia.
+	 * @param dout Strumień wyjściowy.
+	 * @throws Exception
+	 */
 	public void saveGroupList(DataOutputStream dout) throws Exception{
 		int listLen = groupList.size();
 		dout.writeInt(listLen);
@@ -376,6 +433,11 @@ public class UniDB {
 		}
 	}
 	
+	/**
+	 * Metoda zapisująca zawartość classList do strumienia.
+	 * @param dout Strumień wyjściowy.
+	 * @throws Exception
+	 */
 	public void saveClassList(DataOutputStream dout) throws Exception{
 		int listLen = classList.size();
 		dout.writeInt(listLen);
@@ -384,12 +446,26 @@ public class UniDB {
 		}
 	}
 	
+	/**
+	 * Metoda zapisująca bazę danych do pliku.
+	 * Struktura wynikowego pliku: <br>
+	 * studentList - groupList - classList - classCriterionMap - studentGroupMap - studentGradesMap.
+	 * @param path Ścieżka do pliku wyjściowego.
+	 * @throws Exception
+	 */
 	public void saveToFile(String path) throws Exception{
 		FileOutputStream fs = new FileOutputStream(path);
 		DataOutputStream out = new DataOutputStream(fs);
 		saveToFile(out);
 	}
 	
+	/**
+	 * Metoda zapisująca bazę danych do strumienia.
+	 * Struktura wynikowego pliku: <br>
+	 * studentList - groupList - classList - classCriterionMap - studentGroupMap - studentGradesMap.
+	 * @param dout Strumień wyjściowy.
+	 * @throws Exception
+	 */
 	public void saveToFile(DataOutputStream dout) throws Exception{
 		saveStudentList(dout);
 		saveGroupList(dout);
@@ -402,12 +478,26 @@ public class UniDB {
 			
 	}
 	
+	/**
+	 * Metoda wypełniająca bazę danych na podstawie zawartości pliku.
+	 * Struktura pliku wejściowego: <br>
+	 * studentList - groupList - classList - classCriterionMap - studentGroupMap - studentGradesMap.
+	 * @param path Ścieżka do pliku wyjściowego.
+	 * @throws Exception
+	 */
 	public void loadFromFile(String path) throws Exception{
 		FileInputStream fs = new FileInputStream(path);
 		DataInputStream in = new DataInputStream(fs);
 		loadFromFile(in);
 	}
 	
+	/**
+	 * Metoda wypełniająca bazę danych na podstawie zawartości strumienia.
+	 * Struktura danych wejściowych: <br> 
+	 * studentList - groupList - classList - classCriterionMap - studentGroupMap - studentGradesMap.
+	 * @param din Strumień wejściowy.
+	 * @throws Exception
+	 */
 	public void loadFromFile(DataInputStream din) throws Exception{
 		loadStudentsFromFile(din);
 		loadGroupsFromFile(din);

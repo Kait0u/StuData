@@ -94,6 +94,9 @@ public class CriterionCreationDialog extends JDialog {
 		pnlButtons.add(btnCreateUpdate, BorderLayout.LINE_END);
 		
 		add(pnlButtons, BorderLayout.PAGE_END);
+		
+		// --------------
+		setLocationRelativeTo(null);
 	}
 	
 	private void submit(boolean shouldApply) {

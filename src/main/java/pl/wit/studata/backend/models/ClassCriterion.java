@@ -54,6 +54,14 @@ public class ClassCriterion implements Serializable {
 		} else
 			return false;
 	}
+	
+	/**
+	 * Tworzy kopię głęboką obiektu.
+	 * @return Kopia głęboka.
+	 */
+	public ClassCriterion deepCopy() {
+		return new ClassCriterion(new String(this.criterionName), maxPoints);
+	}
 
 	// gettery i settery
 	public String getCriterionName() {
@@ -105,6 +113,13 @@ public class ClassCriterion implements Serializable {
 		maxPoints = din.readInt();
 	}
 
+	/**
+	 * Metoda pobierająca wartość pola kluczowego ze strumienia i wyszukująca element z listy o takiej samej wartośći pola kluczowego. 
+	 * @param din Strumień wejściowy
+	 * @param l Lista kryteriów
+	 * @return Obiekt kryterium
+	 * @throws Exception
+	 */
 	public static ClassCriterion loadMapRef(DataInputStream din, List<ClassCriterion> l) throws Exception {
 		String name = din.readUTF();
 		for (ClassCriterion cc : l) {

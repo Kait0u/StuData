@@ -142,6 +142,16 @@ private static final long serialVersionUID = 1L;
 	private List<UniGroup> groups = null;
 	
 	/**
+	 * Mapa pozwalająca na pilnowanie i porównywanie zmian, celem późniejszego wprowadzenia ich do bazy.
+	 */
+	private Map<UniGroup, UniGroup> copyToOriginal = null;
+	
+	/**
+	 * Mapa pozwalająca na pilnowanie i porównywanie zmian, celem późniejszego wprowadzenia ich do bazy.
+	 */
+	private Map<UniGroup, UniGroup> originalToCopy = null;
+	
+	/**
 	 * Zmienna do przechowywania, czy istnieją jakieś modyfikacje, które nie zostały ani zatwierdzone, ani odrzucone.
 	 */
 	private boolean unsavedChanges = false;
@@ -322,27 +332,6 @@ private static final long serialVersionUID = 1L;
 		
 		// Czynności po zbudowaniu interfejsu
 		update();
-	}
-	
-	/**
-	 * Metoda, która ustawia struktury danych na nowe, po czym pobiera dane z obiektu bazy danych.
-	 */
-	private void pullDataFromDB() {
-		groups = new LinkedList<UniGroup>();
-		
-		UniDB db = InternalData.DATABASE;
-		
-		List<UniGroup> dbGroupList = null;
-		
-		// Pobierz listę grup
-		synchronized (db) {
-			dbGroupList = db.getGroupList();
-		}
-		
-		// Skopiuj listę z bazy do lokalnych
-		synchronized (dbGroupList) {
-			groups.addAll(dbGroupList);
-		}
 	}
 	
 	/**
@@ -602,7 +591,55 @@ private static final long serialVersionUID = 1L;
 	}
 
 	@Override
+	public void pullFromDB() {
+		copyToOriginal = new HashMap<>();
+		originalToCopy = new HashMap<>();
+		groups = new LinkedList<UniGroup>();
+		
+		UniDB db = InternalData.DATABASE;
+		
+		List<UniGroup> dbGroupList = null;
+		
+		// Pobierz listę grup
+		synchronized (db) {
+			dbGroupList = db.getGroupList();
+		}
+		
+		// Skopiuj listę z bazy do lokalnych
+		synchronized (dbGroupList) {
+			for (UniGroup gOrig: dbGroupList) {
+				UniGroup gCopy = gOrig.deepCopy();
+				groups.add(gCopy);
+				copyToOriginal.put(gCopy, gOrig);
+				originalToCopy.put(gOrig, gCopy);
+			}
+		}
+	}
+	
+	@Override
+	public void merge() {
+		List<UniGroup> tempGroups = new ArrayList<>();
+		
+		for (UniGroup gCopy: groups) {
+			UniGroup gOrig = null;
+			if (copyToOriginal.containsKey(gCopy)) {
+				gOrig = copyToOriginal.get(gCopy);
+				gOrig.setSpecialization(gCopy.getSpecialization());
+				gOrig.setDescription(gCopy.getDescription());
+			}
+			
+			if (gOrig == null)
+				tempGroups.add(gCopy);
+			else
+				tempGroups.add(gOrig);
+		}
+		
+		groups = tempGroups;
+	}
+	
+	@Override
 	public void pushToDB() {
+		merge();
 		List<UniGroup> groupsToDB = new ArrayList<UniGroup>(groups);
 		
 		Thread tGroups = new Thread(() -> {
@@ -617,6 +654,7 @@ private static final long serialVersionUID = 1L;
 		try {
 			tGroups.join();
 			unsavedChanges = false;
+			update();
 		} catch (InterruptedException ex) {
 			StringBuilder sb = new StringBuilder("Something went wrong saving changes to the database!");
 			sb.append('\n').append(ex.getMessage());
@@ -632,7 +670,7 @@ private static final long serialVersionUID = 1L;
 
 	@Override
 	public void update() {
-		pullDataFromDB();
+		pullFromDB();
 		updateTable();
 	}
 

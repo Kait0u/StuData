@@ -1,102 +1,117 @@
 package pl.wit.studata.backend.fileio;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.util.ArrayList;
+import static org.junit.jupiter.api.Assertions.*;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import pl.wit.studata.backend.UniDB;
 import pl.wit.studata.backend.models.*;
-
+/**
+ * Klasa testowa do sprawdzenia poprawności zapisu i odczytu danych z plików przy użyciu klasy UniDB.
+ * @author Aliaksei Harbuz
+ * @author Iryna Mishchenko
+ */
 public class SerializableTest {
+	private UniDB db;
+    private UniDB db2;
+    private String outPath;
 
-	@Test
-	public void test() {
-		UniDB db = new UniDB();
-		UniDB db2 = new UniDB();
-		
-		String outPath = "src/test/resources/output.txt";
-		UniGroup gr = new UniGroup("GroupCode 1", "Spec1", "Desc1");
-		ClassCriterion cr = new ClassCriterion("Criterion 1", 5);
-		ClassCriterion cr2 = new ClassCriterion("Criterion 2", 5);
-		List<ClassCriterion> criteria = Arrays.asList(cr, cr2);
-		UniClass cl = new UniClass("Class 1", "CL1", criteria);
-		UniStudent st = new UniStudent("Name", "Surname", 123);
-		
-		
-		db.getStudentList().add(st);
-		db.getGroupList().add(gr);
-		db.getClassList().add(cl);
-		db.getClassCriterionMap().put(cl, criteria);
-		db.getStudentGroupMap().put(st, gr);
+  //Inicjalizujemy obiekty przed każdym testem
+    @BeforeEach
+    public void setUp() {
+		// Tworzenie instancji bazy danych
+        db = new UniDB();
+        db2 = new UniDB();
+		// Ścieżka do pliku wyjściowego
+        outPath = "src/test/resources/output.txt";
+		// Tworzymy obiekty testowe
+        UniGroup GD02PO01 = new UniGroup("GD02PO01", "Grafika", "Grafika 1 rok");
+        ClassCriterion kryterium1 = new ClassCriterion("Criterion 1", 50);
+        ClassCriterion kryterium2 = new ClassCriterion("Criterion 2", 50);
+        List<ClassCriterion> criteria = Arrays.asList(kryterium1,kryterium2);
+        UniClass cl = new UniClass("Class 1", "CL1", criteria);
+        UniStudent mm = new UniStudent("Mariia", "Muzyczna", 12345);
 
-		db.addGradeToStudent(st, cl, cr2, 4);
-		// write test
+        db.getStudentList().add(mm);
+        db.getGroupList().add( GD02PO01);
+        db.getClassList().add(cl);
+        db.getClassCriterionMap().put(cl, criteria);
+        db.getStudentGroupMap().put(mm,  GD02PO01);
+        db.addGradeToStudent(mm, cl, kryterium2, 4);
+    }
+    
+    @Test
+    public void testSaveToFile() {
+		// Zapisujemy dane do pliku
 		try {
 			db.saveToFile(outPath);
 		}
 		catch(Exception ex){
 			System.out.print(ex.getMessage());
 		}
-		
-		
-		try {
-			db2.loadFromFile(outPath);
-		}
-		catch(Exception ex){
-			System.out.println(ex.getMessage());
-		}
-		
-		
-		// check student-group map
-		for(UniStudent stud: db2.getStudentGroupMap().keySet()) {
-			System.out.println("Student-Group pair: ");
-			System.out.println(stud.getFirstName());
-			System.out.println(stud.getLastName());
-			
-			UniGroup mGr = db2.getStudentGroupMap().get(stud);
-			System.out.println(mGr.getGroupCode());
-			System.out.println(mGr.getDescription());
-			System.out.println(mGr.getSpecialization());
-		}
-		
-		// check class-group map
-		for(UniClass key: db2.getClassCriterionMap().keySet()) {
-			System.out.println("Class-Criteria pair: ");
-			System.out.println(key.getClassName());
-			
-			for(ClassCriterion criterion: db2.getClassCriterionMap().get(key)) {
-				System.out.println(criterion.getCriterionName());
-				System.out.println(criterion.getMaxPoints());
-			}
-		}
+    }
+    
+    @Test
+    public void testLoadFromFile() {
+    	
+    	 // Odczytujemy dane z pliku
+    			try {
+    				db2.loadFromFile(outPath);
+    				// Sprawdzenie listy studentów
+         	        assertEquals(1, db2.getStudentList().size());
+         	        UniStudent s = db2.getStudentList().get(0);
+         	        assertEquals("Mariia", s.getFirstName());
+         	        assertEquals("Muzyczna", s.getLastName());
 
-		for(UniClass c: db2.getClassList()) {
-			System.out.println(c.toString());
-			System.out.println(c.getClassName());
-			for(ClassCriterion c2: c.getCriteriaList()) {
-				System.out.println("Criteria: " + c2.getCriterionName());
-			}
-		}
-		
-		for(UniStudent s: db2.getStudentList()) {
-			System.out.println(s.toString());
-			System.out.println(s.getFirstName());
-			System.out.println(s.getLastName());
-		}
-		
-		Map<UniClass, Map<ClassCriterion, Integer>> m = db2.getStudentGradesMap().get(st);
-		Map<ClassCriterion, Integer> mm = m.get(cl);
-		
-		db2.updateClasses(new ArrayList<UniClass>());
-		System.out.println(mm.get(cr2));
-		
-	}
-
+        			// Sprawdzenie grupy studentów
+         	       assertEquals(1, db2.getGroupList().size());
+       	           UniGroup mGr = db2.getGroupList().get(0);
+       	           assertEquals("GD02PO01", mGr.getGroupCode());
+    	           assertEquals("Grafika", mGr.getSpecialization());
+    	           assertEquals("Grafika 1 rok", mGr.getDescription());
+    	           
+       			// Sprawdzenie listy klas
+       	       assertEquals(1, db2.getClassList().size());
+       	        UniClass c = db2.getClassList().get(0);
+       	        assertEquals("Class 1", c.getClassName());
+       	        assertEquals(2, c.getCriteriaList().size());
+       	        assertEquals("Criterion 1", c.getCriteriaList().get(0).getCriterionName());
+       	        assertEquals("Criterion 2", c.getCriteriaList().get(1).getCriterionName());
+    	           
+    	        // Sprawdzenie mapy klasa-kryterium
+        	        assertEquals(1, db2.getClassCriterionMap().size());
+        	        UniClass key = db2.getClassList().get(0);
+        	        List<ClassCriterion> criteria = db2.getClassCriterionMap().get(key);
+        	        assertEquals("Class 1", key.getClassName());
+        	        assertEquals(2, criteria.size());
+        	        assertEquals("Criterion 1", criteria.get(0).getCriterionName());
+        	        assertEquals(50, criteria.get(0).getMaxPoints());
+        	        assertEquals("Criterion 2", criteria.get(1).getCriterionName());
+        	        assertEquals(50, criteria.get(1).getMaxPoints());
+        	        
+        	        //Sprawdzenie mapy student-grupa
+          	        assertEquals(1, db2.getStudentGroupMap().size());
+        	        UniStudent stud = db2.getStudentList().get(0);
+        	        assertEquals("Mariia", stud.getFirstName());
+        	        assertEquals("Muzyczna", stud.getLastName());
+        	        assertEquals("GD02PO01", mGr.getGroupCode());
+        	        assertEquals("Grafika", mGr.getSpecialization());
+        	        assertEquals("Grafika 1 rok", mGr.getDescription());
+        	        
+        			// Sprawdzamy mapy ocen studentów
+        	       Map<UniClass, Map<ClassCriterion, Integer>> gradesMap = db2.getStudentGradesMap().get(s);
+        	        assertNotNull(gradesMap);
+        	        Map<ClassCriterion, Integer> classGrades = gradesMap.get(c);
+        	        assertNotNull(classGrades);
+        	        assertEquals((Integer) 4, classGrades.get(new ClassCriterion("Criterion 2", 50)));
+    			}
+    			catch(Exception ex){
+    				System.out.println(ex.getMessage());
+    			}
+    }   
 }

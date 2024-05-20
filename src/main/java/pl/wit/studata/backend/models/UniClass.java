@@ -2,6 +2,7 @@ package pl.wit.studata.backend.models;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.util.ArrayList;
 
 //Klasa reprezentująca przedmiot
 
@@ -57,6 +58,17 @@ public class UniClass implements Serializable {
 		criteriaList.add(criterion);
 	}
 
+	/**
+	 * Tworzy kopię głęboką obiektu.
+	 * @return Kopia głęboka.
+	 */
+	public UniClass deepCopy() {
+		List<ClassCriterion> cpyList = new ArrayList<>();
+		for (ClassCriterion origCrit: criteriaList)
+			cpyList.add(origCrit.deepCopy());
+		return new UniClass(new String(this.className), new String(this.code), cpyList);
+	}
+	
 	// gettery i settery
 	public String getClassName() {
 		return className;
@@ -127,6 +139,13 @@ public class UniClass implements Serializable {
 
 	}
 
+	/**
+	 * Metoda pobierająca wartość pola kluczowego ze strumienia i wyszukująca element z listy o takiej samej wartośći pola kluczowego. 
+	 * @param din Strumień wejściowy
+	 * @param l Lista przedmiotów.
+	 * @return Przedmiot.
+	 * @throws Exception
+	 */
 	public static UniClass loadMapRef(DataInputStream din, List<UniClass> l) throws Exception {
 		String name = din.readUTF();
 		for (UniClass cc : l) {

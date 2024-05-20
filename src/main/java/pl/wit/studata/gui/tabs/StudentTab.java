@@ -137,6 +137,16 @@ public class StudentTab extends JPanel implements ActionListener, IDatabaseInter
 	private List<UniStudent> students = null;
 	
 	/**
+	 * Mapa pozwalająca na pilnowanie i porównywanie zmian, celem późniejszego wprowadzenia ich do bazy.
+	 */
+	private Map<UniStudent, UniStudent> copyToOriginal = null;
+	
+	/**
+	 * Mapa pozwalająca na pilnowanie i porównywanie zmian, celem późniejszego wprowadzenia ich do bazy.
+	 */
+	private Map<UniStudent, UniStudent> originalToCopy = null;
+	
+	/**
 	 * Lista do przechowywania grup pobranych z bazy danych w danym momencie.
 	 */
 	private List<UniGroup> groups = null;
@@ -145,6 +155,11 @@ public class StudentTab extends JPanel implements ActionListener, IDatabaseInter
 	 * Mapa do przechowywania przypisań studenta do danej grupy.
 	 */
 	private Map<UniStudent, UniGroup> groupAssignments = null;
+	
+	/**
+	 * Mapa do przechowywania i modyfikacji przypisań studenta do danej grupy.
+	 */
+	private Map<UniStudent, UniGroup> localGroupAssignments = null;
 	
 	/**
 	 * Zmienna do przechowywania, czy istnieją jakieś modyfikacje, które nie zostały ani zatwierdzone, ani odrzucone.
@@ -343,53 +358,19 @@ public class StudentTab extends JPanel implements ActionListener, IDatabaseInter
 	}
 	
 	/**
-	 * Metoda, która ustawia struktury danych na nowe, po czym pobiera dane z obiektu bazy danych.
-	 */
-	private void pullDataFromDB() {
-		students = new LinkedList<UniStudent>();
-		groups = new LinkedList<UniGroup>();
-		groupAssignments = new HashMap<UniStudent, UniGroup>();
-		
-		UniDB db = InternalData.DATABASE;
-		
-		List<UniStudent> dbStudentList = null;
-		List<UniGroup> dbGroupList = null;
-		Map<UniStudent, UniGroup> dbGroupAssignments = null;
-		
-		// Pobierz listę studentów i mapę przypisań z bazy danych.
-		synchronized (db) {
-			dbStudentList = db.getStudentList();
-			dbGroupList = db.getGroupList();
-			dbGroupAssignments = db.getStudentGroupMap();
-		}
-		
-		// Skopiuj listy i mapy z bazy do lokalnych
-		synchronized (dbStudentList) {
-			students.addAll(dbStudentList);
-		}
-		synchronized (dbGroupList) {
-			groups.addAll(dbGroupList);
-		}
-		
-		synchronized (dbGroupAssignments) {
-			groupAssignments.putAll(dbGroupAssignments);
-		}
-	}
-	
-	/**
 	 * Metoda dodająca wiersz do tabeli na podstawie istniejącego Studenta.
 	 * @param s Student do dodania.
 	 */
 	private void addTableRow(UniStudent s) {
 		if (s == null) return;
 		
-		UniGroup g = groupAssignments.getOrDefault(s, null);
+		UniGroup g = localGroupAssignments.getOrDefault(s, null);
 		
 		Object[] rowData = new Object[] {
 			s.getStudentId(),
 			s.getFirstName(),
 			s.getLastName(),
-			g != null ? g.getGroupCode() : AppData.NONE_TEXT
+			g != null ? g.toString() : AppData.NONE_TEXT
 		};
 		
 		tblData.addDataRow(rowData);
@@ -403,13 +384,13 @@ public class StudentTab extends JPanel implements ActionListener, IDatabaseInter
 	private void updateTableRow(int rowIdx, UniStudent s) {
 		if (s == null) return;
 		
-		UniGroup g = groupAssignments.getOrDefault(s, null);
+		UniGroup g = localGroupAssignments.getOrDefault(s, null);
 				
 		Object[] rowData = new Object[] {
 				s.getStudentId(),
 				s.getFirstName(),
 				s.getLastName(),
-				g != null ? g.getGroupCode() : AppData.NONE_TEXT
+				g != null ? g.toString() : AppData.NONE_TEXT
 		};
 		
 		tblData.updateRow(rowIdx, rowData);
@@ -467,8 +448,8 @@ public class StudentTab extends JPanel implements ActionListener, IDatabaseInter
 		
 		if (groups != null) 
 			for (UniGroup g: groups) {
-				cmbGroup.addItem(g.getGroupCode());
-				cmbGroupQuery.addItem(g.getGroupCode());
+				cmbGroup.addItem(g.toString());
+				cmbGroupQuery.addItem(g.toString());
 			}
 		
 		cmbGroup.addItem(AppData.NONE_TEXT);
@@ -487,11 +468,9 @@ public class StudentTab extends JPanel implements ActionListener, IDatabaseInter
 		updateGroupCombobox();
 	}
 	
-	/**
-	 * Metoda dokonująca pełnego odświeżenia zasobów
-	 */
+	@Override
 	public void update() {
-		pullDataFromDB();
+		pullFromDB();
 		updateTable();
 		updateWidgets();
 	}
@@ -512,7 +491,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabaseInter
 		students.add(s);
 		
 		if (group != null)
-			groupAssignments.put(s, group);
+			localGroupAssignments.put(s, group);
 		
 		addTableRow(s);
 		updateIdSpinner();
@@ -529,7 +508,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabaseInter
 		if (toDelete == null)
 			return false;
 		
-		groupAssignments.remove(toDelete);
+		localGroupAssignments.remove(toDelete);
 		
 		if (!students.contains(toDelete))
 			return false;
@@ -555,9 +534,9 @@ public class StudentTab extends JPanel implements ActionListener, IDatabaseInter
 		toUpdate.setLastName(lastName);
 		
 		if (group != null)
-			groupAssignments.put(toUpdate, group);
+			localGroupAssignments.put(toUpdate, group);
 		else
-			groupAssignments.remove(toUpdate);
+			localGroupAssignments.remove(toUpdate);
 		
 		int rowIdx = getRowIdx(toUpdate);
 		
@@ -696,7 +675,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabaseInter
 				Integer studentId = toUpdate.getStudentId();
 				String firstName = toUpdate.getFirstName();
 				String lastName = toUpdate.getLastName();
-				UniGroup group = groupAssignments.getOrDefault(toUpdate, null);
+				UniGroup group = localGroupAssignments.getOrDefault(toUpdate, null);
 				int groupIdx = (group != null && groups != null) ? groups.indexOf(group) : -1;
 				
 				JSpinner spnId = (JSpinner) formMap.get(StudentTableHeaders.ID); 
@@ -714,34 +693,103 @@ public class StudentTab extends JPanel implements ActionListener, IDatabaseInter
 		} else if (source == btnClearCriteria) {
 			resetFilterCriteria();
 			updateTable();
+		}	
+	}
+	
+	@Override
+	public void pullFromDB() {
+		copyToOriginal = new HashMap<>();
+		originalToCopy = new HashMap<>();
+		students = new LinkedList<UniStudent>();
+		groups = new LinkedList<UniGroup>();
+		groupAssignments = new HashMap<UniStudent, UniGroup>();
+		localGroupAssignments = new HashMap<UniStudent, UniGroup>();
+		
+		
+		UniDB db = InternalData.DATABASE;
+		
+		List<UniStudent> dbStudentList = null;
+		List<UniGroup> dbGroupList = null;
+		Map<UniStudent, UniGroup> dbGroupAssignments = null;
+		
+		
+		// Pobierz listę studentów i mapę przypisań z bazy danych.
+		synchronized (db) {
+			dbStudentList = db.getStudentList();
+			dbGroupList = db.getGroupList();
+			dbGroupAssignments = db.getStudentGroupMap();
 		}
 		
+		// Skopiuj listy i mapy z bazy do lokalnych
+		synchronized (dbStudentList) {
+			dbStudentList.forEach((student) -> {
+				UniStudent studentCopy = student.deepCopy();
+				students.add(studentCopy);
+				copyToOriginal.put(studentCopy, student);
+				originalToCopy.put(student, studentCopy);
+			});
+		}
+		
+		synchronized (dbGroupList) {
+			groups.addAll(dbGroupList);
+		}
+		
+		synchronized (dbGroupAssignments) {
+			dbGroupAssignments.entrySet().forEach((entry) -> {
+				UniStudent student = entry.getKey();
+				UniStudent studentCopy = originalToCopy.get(student);
+				
+				groupAssignments.put(student, entry.getValue());
+				localGroupAssignments.put(studentCopy, entry.getValue());
+			});
+		}
 	}
 
 	@Override
+	public void merge() {
+		List<UniStudent> tempStudents = new ArrayList<UniStudent>();
+		Map<UniStudent, UniGroup> tempAssigmentMap = new HashMap<>();
+		
+		for (UniStudent sCopy: students) { // sCopy to albo kopia albo świeżo stworzony student
+			UniStudent sOrig = null;
+			
+			if (copyToOriginal.containsKey(sCopy)) {
+				sOrig = copyToOriginal.get(sCopy);
+				sOrig.setFirstName(sCopy.getFirstName());
+				sOrig.setLastName(sCopy.getLastName());
+			}
+			
+			UniGroup currGroup = localGroupAssignments.getOrDefault(sCopy, null);
+			
+			if (sOrig == null) {
+				tempStudents.add(sCopy);
+				if (currGroup != null) tempAssigmentMap.put(sCopy, currGroup);
+			} else {
+				tempStudents.add(sOrig);
+				if (currGroup != null) tempAssigmentMap.put(sOrig, currGroup);
+			}	
+		}
+		students = tempStudents;
+		localGroupAssignments = tempAssigmentMap;
+	}
+	
+	@Override
 	public void pushToDB() {
+		merge();
+		
 		List<UniStudent> studentsToDB = new ArrayList<UniStudent>(students);
-		Map<UniStudent, UniGroup> groupAssignmentsToDB = new HashMap<UniStudent, UniGroup>(groupAssignments);
+		Map<UniStudent, UniGroup> groupAssignmentsToDB = new HashMap<UniStudent, UniGroup>(localGroupAssignments);
 		
 		UniDB db = InternalData.DATABASE;
-		Thread tStudents = new Thread(() -> db.updateStudents(studentsToDB));
-		Thread tGroupMap = new Thread(() -> db.updateStudentGroupMap(groupAssignmentsToDB));
 		
 		synchronized (db) {
-			InternalData.EXECUTOR.execute(tStudents);
-			InternalData.EXECUTOR.execute(tGroupMap);
+			db.updateStudents(studentsToDB);
+			db.updateStudentGroupMap(groupAssignmentsToDB);
 		}
 		
-		try {
-			tStudents.join();
-			tGroupMap.join();
-			unsavedChanges = false;
-		} catch (InterruptedException ex) {
-			StringBuilder sb = new StringBuilder("Something went wrong saving changes to the database!");
-			sb.append('\n').append(ex.getMessage());
-			MessageBoxes.showErrorBox("Error!", sb.toString());
-		}
+		unsavedChanges = false;
 		
+		update();
 	}
 
 	@Override

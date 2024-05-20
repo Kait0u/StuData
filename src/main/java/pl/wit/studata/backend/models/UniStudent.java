@@ -45,6 +45,14 @@ public class UniStudent implements Serializable {
 				.append(lastName);
 		return sb.toString();
 	}
+	
+	/**
+	 * Tworzy kopię głęboką obiektu.
+	 * @return Kopia głęboka.
+	 */
+	public UniStudent deepCopy() {
+		return new UniStudent(new String(this.firstName), new String(this.lastName), studentId);
+	}
 
 	// gettery i settery
 	public String getFirstName() {
@@ -107,6 +115,13 @@ public class UniStudent implements Serializable {
 		studentId = din.readInt();
 	}
 
+	/**
+	 * Metoda pobierająca wartość pola kluczowego ze strumienia i wyszukująca element z listy o takiej samej wartośći pola kluczowego. 
+	 * @param din Strumień wejściowy.
+	 * @param l Lista studentów.
+	 * @return Student.
+	 * @throws Exception
+	 */
 	public static UniStudent loadMapRef(DataInputStream din, List<UniStudent> l) throws Exception {
 		int id = din.readInt();
 		for (UniStudent s : l) {

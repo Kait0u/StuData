@@ -43,6 +43,14 @@ public class UniGroup implements Serializable {
 		StringBuilder sb = new StringBuilder("[").append(groupCode).append("] ").append(specialization);
 		return sb.toString();
 	}
+	
+	/**
+	 * Tworzy kopię głęboką obiektu.
+	 * @return Kopia głęboka.
+	 */
+	public UniGroup deepCopy() {
+		return new UniGroup(new String(this.groupCode), new String(this.specialization), new String(this.description));
+	}
 
 	// gettery i settery
 	public String getGroupCode() {
@@ -104,6 +112,13 @@ public class UniGroup implements Serializable {
 		description = din.readUTF();
 	}
 
+	/**
+	 * Metoda pobierająca wartość pola kluczowego ze strumienia i wyszukująca element z listy o takiej samej wartośći pola kluczowego. 
+	 * @param din Strumień wejściowy.
+	 * @param l Lista grup.
+	 * @return Grupa.
+	 * @throws Exception
+	 */
 	public static UniGroup loadMapRef(DataInputStream din, List<UniGroup> l) throws Exception {
 		String code = din.readUTF();
 		for (UniGroup cc : l) {

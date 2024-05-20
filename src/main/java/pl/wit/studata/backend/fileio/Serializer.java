@@ -10,6 +10,12 @@ import pl.wit.studata.backend.models.*;
  * @author Aliaksei Harbuz
  */
 public class Serializer {
+	/**
+	 * Metoda pobierająca dowolny obiekt Serializable ze strumienia.
+	 * @param din Strumień wejścia.
+	 * @return Obiekt serializowalny wczytany ze strumienia.
+	 * @throws Exception
+	 */
 	public static Serializable loadObj(DataInputStream din) throws Exception{
 		String name = din.readUTF();
 		Serializable s = null;

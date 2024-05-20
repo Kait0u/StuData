@@ -16,6 +16,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -141,9 +142,24 @@ public class ClassTab extends JPanel implements IDatabaseInteractor, ActionListe
 	private List<UniClass> classes = null;
 	
 	/**
-	 * Mapa do przechowywania powiązań między zajęciami a kryteriami.
+	 * Mapa pozwalająca na pilnowanie i porównywanie zmian przedmiotów, celem późniejszego wprowadzenia ich do bazy.
 	 */
-	private Map<UniClass, List<ClassCriterion>> classCriteria = null; 
+	private Map<UniClass, UniClass> copyToOriginalClass = null;
+	
+	/**
+	 * Mapa pozwalająca na pilnowanie i porównywanie zmian przedmiotów, celem późniejszego wprowadzenia ich do bazy.
+	 */
+	private Map<UniClass, UniClass> originalToCopyClass = null;
+	
+	/**
+	 * Mapa pozwalająca na pilnowanie i porównywanie zmian przedmiotów, celem późniejszego wprowadzenia ich do bazy.
+	 */
+	private Map<ClassCriterion, ClassCriterion> copyToOriginalCriterion = null;
+	
+	/**
+	 * Mapa pozwalająca na pilnowanie i porównywanie zmian przedmiotów, celem późniejszego wprowadzenia ich do bazy.
+	 */
+	private Map<ClassCriterion, ClassCriterion> originalToCopyCriterion = null;
 	
 	/**
 	 * Zmienna do przechowywania, czy istnieją jakieś modyfikacje, które nie zostały ani zatwierdzone, ani odrzucone.
@@ -157,7 +173,9 @@ public class ClassTab extends JPanel implements IDatabaseInteractor, ActionListe
 	private static final String SEARCH_FORM_STR = "Search";
 
 	
-	
+	/**
+	 * Konstruktor bezparametryczny.
+	 */
 	public ClassTab() {
 		super();
 		
@@ -234,7 +252,7 @@ public class ClassTab extends JPanel implements IDatabaseInteractor, ActionListe
 					comp = new CRUDList() {{
 						Dimension minSize = getMinimumSize();
 						minSize.height = 80;
-						minSize.width = 200;
+						minSize.width = 300;
 						setMinimumSize(minSize);
 						setAddButtonAction((e) -> {
 							Pair<String, Integer> pair = CriterionCreationDialog.showDialog(null);
@@ -242,6 +260,14 @@ public class ClassTab extends JPanel implements IDatabaseInteractor, ActionListe
 							
 							String critName = pair.getValue0();
 							Integer maxPoints = pair.getValue1();
+							
+							if (getListItems().stream()
+									.filter((item) -> ((ClassCriterion) item).getCriterionName().equals(critName))
+									.count() > 0) {
+								MessageBoxes.showErrorBox("Error!", "The name \"".concat(critName).concat("\" is already in use!"));
+								return;
+							}
+							
 							ClassCriterion criterion = new ClassCriterion(critName, maxPoints);
 							addItem(criterion);
 						});
@@ -254,10 +280,18 @@ public class ClassTab extends JPanel implements IDatabaseInteractor, ActionListe
 								Pair<String, Integer> pair = CriterionCreationDialog.showDialog(null, critName, maxPoints);
 								if (pair == null) return;
 								
-								critName = pair.getValue0();
-								maxPoints = pair.getValue1();
-								selected.setCriterionName(critName);
-								selected.setMaxPoints(maxPoints);
+								String newCritName = pair.getValue0();
+								Integer newMaxPoints = pair.getValue1();
+								
+								if (getListItems().stream()
+										.filter((item) -> item != selected && ((ClassCriterion) item).getCriterionName().equals(newCritName))
+										.count() > 0) {
+									MessageBoxes.showErrorBox("Error!", "The name \"".concat(newCritName).concat("\" is already in use!"));
+									return;
+								}
+								
+								selected.setCriterionName(newCritName);
+								selected.setMaxPoints(newMaxPoints);
 								
 								updateSelectedItem(selected);
 							}
@@ -350,25 +384,6 @@ public class ClassTab extends JPanel implements IDatabaseInteractor, ActionListe
 		// Czynności po zbudowaniu interfejsu
 		update();
 		
-	}
-	
-	/**
-	 * Metoda, która ustawia struktury danych na nowe, po czym pobiera dane z obiektu bazy danych.
-	 */
-	private void pullDataFromDB() {
-		classes = new LinkedList<>();
-		
-		UniDB db = InternalData.DATABASE;
-		
-		List<UniClass> classesFromDb = null;
-		
-		synchronized (db) {
-			classesFromDb = db.getClassList();
-		}
-		
-		synchronized (classesFromDb) {
-			classes.addAll(classesFromDb);
-		}
 	}
 	
 	private void updateTable() {
@@ -613,9 +628,82 @@ public class ClassTab extends JPanel implements IDatabaseInteractor, ActionListe
 		}
 
 	}
+	
+	@Override
+	public void pullFromDB() {
+		copyToOriginalClass = new HashMap<>();
+		originalToCopyClass = new HashMap<>();
+		copyToOriginalCriterion = new HashMap<>();
+		originalToCopyCriterion = new HashMap<>();
+		classes = new LinkedList<>();
+		
+		UniDB db = InternalData.DATABASE;
+		
+		List<UniClass> dbClasses = null;
+		
+		synchronized (db) {
+			dbClasses = db.getClassList();
+		}
+		
+		synchronized (dbClasses) {
+			for (UniClass clOrig: dbClasses) {
+				UniClass clCopy = clOrig.deepCopy();
+				
+				classes.add(clCopy);
+				copyToOriginalClass.put(clCopy, clOrig);
+				originalToCopyClass.put(clOrig, clCopy);
+				
+				// Kryteria
+				List<ClassCriterion> critListOrig = clOrig.getCriteriaList();
+				List<ClassCriterion> critListCopy = clCopy.getCriteriaList();
+				int criterionCount = critListOrig.size();
+				for (int critIdx = 0; critIdx < criterionCount; ++critIdx) {
+					ClassCriterion critOrig = critListOrig.get(critIdx);
+					ClassCriterion critCopy = critListCopy.get(critIdx);
+					
+					copyToOriginalCriterion.put(critCopy, critOrig);
+					originalToCopyCriterion.put(critOrig, critCopy);
+				}
+			}
+		}
+	}
+	
+	@Override
+	public void merge() {
+		List<UniClass> tempClasses = new ArrayList<>();
+		
+		for (UniClass clCopy: classes) {
+			if (copyToOriginalClass.containsKey(clCopy)) {
+				UniClass clOrig = copyToOriginalClass.get(clCopy);
+				clOrig.setClassName(clCopy.getClassName());
+				
+				// Kryteria
+				List<ClassCriterion> critListOrig = clOrig.getCriteriaList();
+				List<ClassCriterion> critListCopy = clCopy.getCriteriaList();
+				List<ClassCriterion> newCritList = new LinkedList<>();
+				
+				for (ClassCriterion critCopy: critListCopy) {
+					if (copyToOriginalCriterion.containsKey(critCopy)) {
+						ClassCriterion critOrig = copyToOriginalCriterion.get(critCopy);
+						critOrig.setCriterionName(critCopy.getCriterionName());
+						critOrig.setMaxPoints(critCopy.getMaxPoints());
+						newCritList.add(critOrig);
+					} else newCritList.add(critCopy);
+				}
+				
+				clOrig.setCriteriaList(newCritList);
+				
+				tempClasses.add(clOrig);
+			} else tempClasses.add(clCopy);
+		}
+		
+		classes = tempClasses;
+	}
 
 	@Override
 	public void pushToDB() {
+		merge();
+		
 		List<UniClass> classesToDB = new ArrayList<UniClass>(classes);
 		
 		Thread tClasses = new Thread(() -> {
@@ -630,6 +718,7 @@ public class ClassTab extends JPanel implements IDatabaseInteractor, ActionListe
 		try {
 			tClasses.join();
 			unsavedChanges = false;
+			update();
 		} catch (InterruptedException ex) {
 			StringBuilder sb = new StringBuilder("Something went wrong saving changes to the database!");
 			sb.append('\n').append(ex.getMessage());
@@ -651,7 +740,7 @@ public class ClassTab extends JPanel implements IDatabaseInteractor, ActionListe
 
 	@Override
 	public void update() {
-		pullDataFromDB();
+		pullFromDB();
 		updateTable();
 	}
 
