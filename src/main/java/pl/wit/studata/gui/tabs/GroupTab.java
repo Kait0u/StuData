@@ -42,7 +42,7 @@ import pl.wit.studata.InternalData;
 import pl.wit.studata.backend.UniDB;
 import pl.wit.studata.backend.models.UniGroup;
 import pl.wit.studata.backend.models.UniStudent;
-import pl.wit.studata.gui.MessageBoxes;
+import pl.wit.studata.gui.dialogs.MessageBoxes;
 import pl.wit.studata.gui.enums.GroupTableHeaders;
 import pl.wit.studata.gui.enums.StudentTableHeaders;
 import pl.wit.studata.gui.interfaces.IDatabaseInteractor;

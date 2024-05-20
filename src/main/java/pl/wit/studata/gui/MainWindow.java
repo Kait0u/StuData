@@ -33,6 +33,8 @@ import javax.swing.event.ChangeListener;
 import pl.wit.studata.AppData;
 import pl.wit.studata.Config;
 import pl.wit.studata.InternalData;
+import pl.wit.studata.gui.dialogs.ConfigDialog;
+import pl.wit.studata.gui.dialogs.MessageBoxes;
 import pl.wit.studata.gui.enums.MainMenuItems;
 import pl.wit.studata.gui.enums.MainTabs;
 import pl.wit.studata.gui.interfaces.IDatabaseInteractor;
@@ -272,7 +274,9 @@ public class MainWindow extends JFrame {
 			if (!MessageBoxes.showConfirmationBox("Are you sure?", "Unsaved changes detected! If you refresh now, you will lose your progress. Are you sure you want to refresh?")) 
 				return;
 		}
+		setEnabled(false);
 		currentTab.update();
+		setEnabled(true);
 	}
 	
 	/**

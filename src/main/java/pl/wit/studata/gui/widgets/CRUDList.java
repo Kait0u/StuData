@@ -71,6 +71,29 @@ public class CRUDList extends JPanel {
     public void addItem(Object item) {
         listModel.addElement(item);
     }
+    
+    /**
+     * Pobiera indeks obiektu reprezentowanego przez obecnie zaznaczony wpis.
+     * @return Indeks zaznaczonego obiektu lub -1, jeśli nic nie jest zaznaczone.
+     */
+    public int getSelectedItemIdx() {
+    	int selectedIndex = list.getSelectedIndex();
+    	return selectedIndex;
+    }
+    
+    /**
+     * Pobiera obiekt reprezentowany przez obecnie zaznaczony wpis.
+     * @return Zaznaczony obiekt lub null, jeśli nic nie jest zaznaczone.
+     */
+    public Object getSelectedItem() {
+    	Object result = null;
+    	int selectedIndex = getSelectedItemIdx();
+    	if (selectedIndex != -1) {
+    		result = listModel.getElementAt(selectedIndex);
+    	}
+    	return result;
+    }
+   
 
     /**
      * Domyślna metoda do edytowania wpisu (wpis będzie typu String)
@@ -83,6 +106,13 @@ public class CRUDList extends JPanel {
                 listModel.setElementAt(newValue, selectedIndex);
             }
         }
+    }
+    
+    public void updateSelectedItem(Object newValue) {
+    	int selectedIndex = list.getSelectedIndex();
+    	if (newValue != null && selectedIndex >= 0) {
+    		listModel.setElementAt(newValue, selectedIndex);
+    	}
     }
 
     /**

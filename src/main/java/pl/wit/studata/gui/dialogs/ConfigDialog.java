@@ -1,7 +1,7 @@
 /**
  * 
  */
-package pl.wit.studata.gui;
+package pl.wit.studata.gui.dialogs;
 
 import java.awt.BorderLayout;
 import java.awt.Dialog;
@@ -54,9 +54,7 @@ public class ConfigDialog extends JDialog {
 		setMinimumSize(new Dimension(475, 250));
 		setResizable(false);
 
-		setLayout(new BorderLayout(1, 1));
-		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.insets = new Insets(5, 5, 5, 5);
+		setLayout(new BorderLayout());
 
 		FormWidget form = new FormWidget();
 		for (ConfigSettings setting : ConfigSettings.values()) {
@@ -75,7 +73,6 @@ public class ConfigDialog extends JDialog {
 			
 			form.addField(setting.getSettingName().concat(": "), comp);
 		}
-		
 		
 		btnCancel = new JButton("Cancel");
 		btnCancel.addActionListener(new ActionListener() {
@@ -101,6 +98,8 @@ public class ConfigDialog extends JDialog {
 		form.addWidget(btnApply);
 		form.setPreferredSize(new Dimension(410, 240));
 		add(form, BorderLayout.CENTER);
+		
+		setLocationRelativeTo(null); // Centruj okno na ekranie
 		setVisible(true);
 	}
 	

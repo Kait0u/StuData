@@ -101,6 +101,7 @@ public class UniClass implements Serializable {
 
 	public void saveToFile(DataOutputStream dout) throws Exception {
 		dout.writeUTF(getClass().getSimpleName());
+		dout.writeUTF(code);
 		dout.writeUTF(className);
 		dout.writeInt(criteriaList.size());
 		for (ClassCriterion cr : criteriaList) {
@@ -113,7 +114,8 @@ public class UniClass implements Serializable {
 	}
 
 	public void loadFromFile(DataInputStream din) throws Exception {
-		// className = din.readUTF();
+		code = din.readUTF();
+		className = din.readUTF();
 		int listLen = din.readInt();
 
 		for (int i = 0; i < listLen; ++i) {

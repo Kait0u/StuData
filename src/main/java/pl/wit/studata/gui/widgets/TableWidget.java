@@ -3,11 +3,14 @@
  */
 package pl.wit.studata.gui.widgets;
 
+import java.awt.Component;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 
 /**
  * Klasa poszerzająca możliwości zwykłego obiektu JTable.
@@ -41,6 +44,8 @@ public class TableWidget extends JTable {
 				model.addColumn(headerName);
 		
 		setModel(model);
+		getTableHeader().setReorderingAllowed(false);
+
 	}
 	
 	/**
