@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Built-By: kait0u
-Build-Jdk: 17.0.10
+Build-Jdk-Spec: 17
+Main-Class: pl.wit.studata.Main
 Created-By: Maven Integration for Eclipse
 

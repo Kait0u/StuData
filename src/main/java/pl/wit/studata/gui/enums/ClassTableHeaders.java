@@ -1,7 +1,7 @@
 package pl.wit.studata.gui.enums;
 
 public enum ClassTableHeaders {
-	ID("ID"),
+	CODE("Code"),
 	NAME("Name"),
 	CRITERIA("Criteria");
 	

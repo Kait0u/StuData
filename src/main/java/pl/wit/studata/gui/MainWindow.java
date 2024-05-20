@@ -36,6 +36,7 @@ import pl.wit.studata.InternalData;
 import pl.wit.studata.gui.enums.MainMenuItems;
 import pl.wit.studata.gui.enums.MainTabs;
 import pl.wit.studata.gui.interfaces.IDatabaseInteractor;
+import pl.wit.studata.gui.tabs.ClassTab;
 import pl.wit.studata.gui.tabs.GroupTab;
 import pl.wit.studata.gui.tabs.StudentTab;
 
@@ -140,6 +141,7 @@ public class MainWindow extends JFrame {
 			case REFRESH:
 				menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
 				menuItem.addActionListener((e) -> updateCurrentTab());
+				break;
 			case CONFIG:
 				menuItem.addActionListener((e) -> new ConfigDialog(this));
 				break;
@@ -175,6 +177,9 @@ public class MainWindow extends JFrame {
 				break;
 			case GROUPS:
 				tabPanel = new GroupTab();
+				break;
+			case CLASSES:
+				tabPanel = new ClassTab();
 				break;
 			default:
 				tabPanel = new JPanel();
