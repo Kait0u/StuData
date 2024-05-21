@@ -368,33 +368,33 @@ public class UniDB {
 	 * @throws Exception
 	 */
 	private void loadStudentGradesMap(DataInputStream din) throws Exception {
-		synchronized (studentGradesMap) {
-			int mapLen = din.readInt();
-			for (int i = 0; i < mapLen; ++i) {
-				UniStudent key = UniStudent.loadMapRef(din, studentList);
-				Map<UniClass, Map<ClassCriterion, Integer>> classes = new HashMap<>();
-				int clMapLen = din.readInt();
-				for (int j = 0; j < clMapLen; ++j) {
-					UniClass clKey = UniClass.loadMapRef(din, classList);
-					Map<ClassCriterion, Integer> mark = new HashMap<>();
-					int mrkMapLen = din.readInt();
-					for (int k = 0; k < mrkMapLen; ++k) {
-						ClassCriterion cc = ClassCriterion.loadMapRef(din, clKey.getCriteriaList());
-						int val = din.readInt();
-						if (cc != null) {
-							mark.put(cc, val);
-						}
-					}
-					if (clKey != null) {
-						classes.put(clKey, mark);
-					}
-				}
-				if (key != null) {
-					studentGradesMap.put(key, classes);
-				}
-			}
-		}
-	}
+        synchronized (studentGradesMap) {
+            int mapLen = din.readInt();
+            for (int i = 0; i < mapLen; ++i) {
+                UniStudent key = UniStudent.loadMapRef(din, studentList);
+                Map<UniClass, Map<ClassCriterion, Integer>> classes = new HashMap<>();
+                int clMapLen = din.readInt();
+                for (int j = 0; j < clMapLen; ++j) {
+                    UniClass clKey = UniClass.loadMapRef(din, classList);
+                    Map<ClassCriterion, Integer> mark = new HashMap<>();
+                    if(clKey != null) {
+                        int mrkMapLen = din.readInt();
+                        for (int k = 0; k < mrkMapLen; ++k) {
+                            ClassCriterion cc = ClassCriterion.loadMapRef(din, clKey.getCriteriaList());
+                            int val = din.readInt();
+                            if (cc != null) {
+                                mark.put(cc, val);
+                            }
+                        }
+                        classes.put(clKey, mark);
+                    }
+                }
+                if (key != null) {
+                    studentGradesMap.put(key, classes);
+                }
+            }
+        }
+    }
 
 	/**
 	 * Metoda zapisująca zawartość studentGradesMap do strumienia. Metoda nie

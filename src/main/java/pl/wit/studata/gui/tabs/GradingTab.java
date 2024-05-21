@@ -316,7 +316,7 @@ public class GradingTab extends JPanel implements ActionListener, IDatabaseInter
 					comp = new SearchableComboBox<ClassCriterion>(new LinkedList<ClassCriterion>());
 					break;
 				case SCORE:
-					comp = new JSpinner(new SpinnerNumberModel(0, 0, Integer.MAX_VALUE, 1));
+//					comp = new JSpinner(new SpinnerNumberModel(0, 0, Integer.MAX_VALUE, 1));
 					break;
 		}
 			
@@ -397,28 +397,16 @@ public class GradingTab extends JPanel implements ActionListener, IDatabaseInter
 	private int getRowIdx(UniStudent s, UniClass cl, ClassCriterion cr) {
 		if (s == null || cl == null || cr == null) return -1;
 		
-//		String sString = s.toString();
-//		String clString = cl.toString();
-//		String crString = cr.toString();
-		
 		int rowCount = tblData.getRowCount();
 		
 		for (int idx = 0; idx < rowCount; ++idx) {
 			// Wyciągnij
-			Object[] row = tblData.getRow(idx);
-//			String foundSString = (String) row[0];
-//			String foundClString = (String) row[1];
-//			String foundCrString = (String) row[2];
-			
+			Object[] row = tblData.getRow(idx);			
 			UniStudent foundS = (UniStudent) row[0];
 			UniClass foundCl = (UniClass) row[1];
 			ClassCriterion foundCr = (ClassCriterion) row[2];
 
 			// Porównaj
-//			boolean c1 = sString.equals(foundSString);
-//			boolean c2 = clString.equals(foundClString);
-//			boolean c3 = crString.equals(foundCrString);
-			
 			boolean c1 = s == foundS;;
 			boolean c2 = cl == foundCl;
 			boolean c3 = cr == foundCr;
@@ -458,29 +446,35 @@ public class GradingTab extends JPanel implements ActionListener, IDatabaseInter
 	/**
 	 * Metoda, która na podstawie pobranych wcześniej danych odpowiednio resetuje a następnie uaktualnia widżety formularza.
 	 */
+	@SuppressWarnings("unchecked")
 	private void updateWidgets() {
-		@SuppressWarnings("unchecked")
 		SearchableComboBox<UniStudent> scmbStudent = (SearchableComboBox<UniStudent>) formMap.get(GradingTableHeaders.STUDENT);
+		SearchableComboBox<UniStudent> scmbStudentQ = (SearchableComboBox<UniStudent>) formQueryMap.get(GradingTableHeaders.STUDENT);
 		scmbStudent.removeAllItems();
+		scmbStudentQ.removeAllItems();
 		
-		@SuppressWarnings("unchecked")
 		SearchableComboBox<UniClass> scmbClass = (SearchableComboBox<UniClass>) formMap.get(GradingTableHeaders.CLASS);
+		SearchableComboBox<UniClass> scmbClassQ = (SearchableComboBox<UniClass>) formQueryMap.get(GradingTableHeaders.CLASS);
 		scmbClass.removeAllItems();
+		scmbClassQ.removeAllItems();
 		
-		@SuppressWarnings("unchecked")
 		SearchableComboBox<ClassCriterion> scmbCrit = (SearchableComboBox<ClassCriterion>) formMap.get(GradingTableHeaders.CRITERION);
+		SearchableComboBox<ClassCriterion> scmbCritQ = (SearchableComboBox<ClassCriterion>) formQueryMap.get(GradingTableHeaders.CRITERION);
 		scmbCrit.removeAllItems();
+		scmbCritQ.removeAllItems();
+		scmbCrit.setEnabled(false);
+		scmbCritQ.setEnabled(false);
 
 		JSpinner spnScore = (JSpinner) formMap.get(GradingTableHeaders.SCORE);
-		
-		scmbCrit.setEnabled(false);
 		
 		if (students != null) {
 			for (UniStudent s: students) {
 				scmbStudent.addItem(s);
+				scmbStudentQ.addItem(s);
 			}
 		}
 		
+		// scmbStudent
 		ActionListener[] scmbStudentActionListeners = scmbStudent.getActionListeners();
 		for (ActionListener al: scmbStudentActionListeners) {
 			scmbStudent.removeActionListener(al);
@@ -493,12 +487,29 @@ public class GradingTab extends JPanel implements ActionListener, IDatabaseInter
 			} catch (Exception ex) {}
 		});
 		
+		// scmbStudentQ
+		ActionListener[] scmbStudentQActionListeners = scmbStudentQ.getActionListeners();
+		for (ActionListener al: scmbStudentQActionListeners) {
+			scmbStudentQ.removeActionListener(al);
+		}
+		
+		scmbStudentQ.addActionListener((e) -> {
+			UniStudent s = null;
+			try {
+				s = (UniStudent) scmbStudentQ.getSelectedItem();
+			} catch (Exception ex) {}
+		});
+		
+		// ------------------------------
+		
 		if (classes != null) {
 			for (UniClass c: classes) {
 				scmbClass.addItem(c);
+				scmbClassQ.addItem(c);
 			}	
 		}
 		
+		// scmbClass
 		ActionListener[] scmbClassActionListeners = scmbClass.getActionListeners();
 		for (ActionListener al: scmbClassActionListeners) {
 			scmbClass.removeActionListener(al);
@@ -525,6 +536,36 @@ public class GradingTab extends JPanel implements ActionListener, IDatabaseInter
 			scmbCrit.setEnabled(true);
 		});
 		
+		// scmbClassQ
+		ActionListener[] scmbClassQActionListeners = scmbClassQ.getActionListeners();
+		for (ActionListener al: scmbClassQActionListeners) {
+			scmbClassQ.removeActionListener(al);
+		}
+		
+		scmbClassQ.addActionListener((e) -> {
+			UniClass cl = null;
+			try {
+				cl = (UniClass) scmbClassQ.getSelectedItem();
+			} catch (Exception ex) {}
+			
+			if (cl == null) {	
+				scmbCritQ.removeAllItems();
+				scmbCritQ.setEnabled(false);
+				return;
+			}
+			
+			List<ClassCriterion> criteria = cl.getCriteriaList();
+			scmbCritQ.removeAllItems();
+			for (ClassCriterion cr: criteria) {
+				scmbCritQ.addItem(cr);
+			}
+			scmbCritQ.setEnabled(true);
+		});
+		
+		// ------------------------------
+		
+		// scmbCrit
+		
 		ActionListener[] scmbCritActionListeners = scmbCrit.getActionListeners();
 		for (ActionListener al: scmbCritActionListeners) {
 			scmbCrit.removeActionListener(al);
@@ -546,11 +587,11 @@ public class GradingTab extends JPanel implements ActionListener, IDatabaseInter
 		});
 	}
 	
-	private Map<UniStudent, Map<UniClass, Map<ClassCriterion, Integer>>> nestedCopyMap(
+	private void nestedCopyMap(
 			Map<UniStudent, Map<UniClass, Map<ClassCriterion, Integer>>> outMap,
 			Map<UniStudent, Map<UniClass, Map<ClassCriterion, Integer>>> inMap) {
 		if (inMap == null || outMap == null)
-			return null;
+			return;
 
 		Map<UniStudent, Map<UniClass, Map<ClassCriterion, Integer>>> result = new HashMap<>();
 
@@ -578,7 +619,6 @@ public class GradingTab extends JPanel implements ActionListener, IDatabaseInter
 			// Putting the new maps into the final maps
 			result.put(s, newClassCritScoreMapStudent);
 		}
-		return result;
 	}
 
 	@Override
@@ -712,6 +752,75 @@ public class GradingTab extends JPanel implements ActionListener, IDatabaseInter
 		
 		return true;
 	}
+	
+	private void resetFilterCriteria() {
+		@SuppressWarnings("unchecked")
+		SearchableComboBox<UniStudent> scmbStudentQ = (SearchableComboBox<UniStudent>) formQueryMap.get(GradingTableHeaders.STUDENT);
+		
+		@SuppressWarnings("unchecked")
+		SearchableComboBox<UniClass> scmbClassQ = (SearchableComboBox<UniClass>) formQueryMap.get(GradingTableHeaders.CLASS);
+		
+		@SuppressWarnings("unchecked")
+		SearchableComboBox<ClassCriterion> scmbCritQ = (SearchableComboBox<ClassCriterion>) formQueryMap.get(GradingTableHeaders.CRITERION);
+		
+		scmbStudentQ.setSelectedItem(null);
+		scmbClassQ.setSelectedItem(null);
+		scmbCritQ.setSelectedItem(null);
+	}
+	
+	private void filterTable() {
+		updateTable();
+		
+		@SuppressWarnings("unchecked")
+		SearchableComboBox<UniStudent> scmbStudentQ = (SearchableComboBox<UniStudent>) formQueryMap.get(GradingTableHeaders.STUDENT);
+		
+		@SuppressWarnings("unchecked")
+		SearchableComboBox<UniClass> scmbClassQ = (SearchableComboBox<UniClass>) formQueryMap.get(GradingTableHeaders.CLASS);
+		
+		@SuppressWarnings("unchecked")
+		SearchableComboBox<ClassCriterion> scmbCritQ = (SearchableComboBox<ClassCriterion>) formQueryMap.get(GradingTableHeaders.CRITERION);
+		
+		UniStudent sQuery = null;
+		UniClass clQuery = null;
+		ClassCriterion crQuery = null;
+		
+		
+		try {
+			sQuery = (UniStudent) scmbStudentQ.getSelectedItem();
+			clQuery = (UniClass) scmbClassQ.getSelectedItem();
+			crQuery = (ClassCriterion) scmbCritQ.getSelectedItem(); 
+		} catch (Exception ex) {
+			return;
+		}
+		
+		List<Integer> rowsToDelete = new ArrayList<Integer>(tblData.getRowCount());
+		
+		for (int rowIdx = 0; rowIdx < tblData.getRowCount(); ++rowIdx) {
+			boolean criteriaMet = true;
+			
+			Object[] row = tblData.getRow(rowIdx);
+			
+			if (criteriaMet && sQuery != null) {
+				Object val = row[GradingTableHeaders.STUDENT.ordinal()];
+				criteriaMet &= (sQuery == val);
+			}
+			if (criteriaMet && clQuery != null) {
+				Object val = row[GradingTableHeaders.CLASS.ordinal()];
+				criteriaMet &= (clQuery == val);
+			}
+			if (criteriaMet && crQuery != null) {
+				Object val = row[GradingTableHeaders.CRITERION.ordinal()];
+				criteriaMet &= (crQuery == val);
+			}
+			
+			// Oznacz do usunięcia jeśli koniunkcja niespełniona
+			if (!criteriaMet) {
+				rowsToDelete.add(rowIdx);
+			}
+		}
+		
+		tblData.deleteMultipleRows(rowsToDelete);
+	}
 
 	
 	@Override
@@ -755,11 +864,12 @@ public class GradingTab extends JPanel implements ActionListener, IDatabaseInter
 			if (rowIdx < 0 ) {
 				unsavedChanges |= addScore(s, cl, cr, score);
 			} else {
-				StringBuilder sb = new StringBuilder("Are you sure that you want to update this score?")
+				int oldScore = (Integer) tblData.getRow(rowIdx)[GradingTableHeaders.SCORE.ordinal()];
+				StringBuilder sb = new StringBuilder("Are you sure that you want to update this score?\n")
 						.append('\n').append("Student: ").append(s.toString())
 						.append('\n').append("Class: ").append(cl.toString())
 						.append('\n').append("Criterion: ").append(cr.toString())
-						.append('\n').append("Score: ").append(score);
+						.append('\n').append("Score: ").append(oldScore).append(" ---> ").append(score);
 				if (MessageBoxes.showConfirmationBox("Are you sure?", sb.toString()))
 					unsavedChanges |= updateScore(s, cl, cr, score);
 			}
@@ -804,9 +914,9 @@ public class GradingTab extends JPanel implements ActionListener, IDatabaseInter
 			spnScore.setValue(Integer.valueOf(score));
 			
 		} else if (source == btnSearch) {
-//			filterTable();
+			filterTable();
 		} else if (source == btnClearCriteria) {
-//			resetFilterCriteria();
+			resetFilterCriteria();
 			updateTable();
 		}	
 	}

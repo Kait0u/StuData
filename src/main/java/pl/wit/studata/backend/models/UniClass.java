@@ -149,7 +149,7 @@ public class UniClass implements Serializable {
 	public static UniClass loadMapRef(DataInputStream din, List<UniClass> l) throws Exception {
 		String name = din.readUTF();
 		for (UniClass cc : l) {
-			if (cc.getClassName() == name)
+			if (cc.getClassName().equals(name))
 				return cc;
 		}
 		return null;
