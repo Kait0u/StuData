@@ -1,6 +1,3 @@
-/**
- * 
- */
 package pl.wit.studata.gui.tabs;
 
 import java.awt.BorderLayout;
@@ -29,9 +26,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.JViewport;
 import javax.swing.ListSelectionModel;
 
 import org.javatuples.Pair;
@@ -40,11 +35,9 @@ import pl.wit.studata.InternalData;
 import pl.wit.studata.backend.UniDB;
 import pl.wit.studata.backend.models.ClassCriterion;
 import pl.wit.studata.backend.models.UniClass;
-import pl.wit.studata.backend.models.UniGroup;
 import pl.wit.studata.gui.dialogs.CriterionCreationDialog;
 import pl.wit.studata.gui.dialogs.MessageBoxes;
 import pl.wit.studata.gui.enums.ClassTableHeaders;
-import pl.wit.studata.gui.enums.GroupTableHeaders;
 import pl.wit.studata.gui.interfaces.IDatabaseInteractor;
 import pl.wit.studata.gui.widgets.CRUDList;
 import pl.wit.studata.gui.widgets.FormWidget;
@@ -178,6 +171,7 @@ public class ClassTab extends JPanel implements IDatabaseInteractor, ActionListe
 	/**
 	 * Konstruktor bezparametryczny.
 	 */
+	@SuppressWarnings("serial")
 	public ClassTab() {
 		super();
 		
@@ -220,7 +214,8 @@ public class ClassTab extends JPanel implements IDatabaseInteractor, ActionListe
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JComboBox source = (JComboBox) e.getSource();
+				@SuppressWarnings("unchecked")
+				JComboBox<String> source = (JComboBox<String>) e.getSource();
 				String cardName = (String) source.getSelectedItem();
 				CardLayout cl = (CardLayout) pnlBotCards.getLayout();
 				cl.show(pnlBotCards, cardName);
@@ -250,7 +245,6 @@ public class ClassTab extends JPanel implements IDatabaseInteractor, ActionListe
 					comp = new JTextField(20);
 					break;
 				case CRITERIA:
-					// TODO Dopracuj poprawne działanie tej listy.
 					comp = new CRUDList() {{
 						Dimension minSize = getMinimumSize();
 						minSize.height = 80;
@@ -680,6 +674,7 @@ public class ClassTab extends JPanel implements IDatabaseInteractor, ActionListe
 				clOrig.setClassName(clCopy.getClassName());
 				
 				// Kryteria
+				@SuppressWarnings("unused")
 				List<ClassCriterion> critListOrig = clOrig.getCriteriaList();
 				List<ClassCriterion> critListCopy = clCopy.getCriteriaList();
 				List<ClassCriterion> newCritList = new LinkedList<>();

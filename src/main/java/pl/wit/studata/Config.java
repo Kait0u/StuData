@@ -83,18 +83,12 @@ public class Config {
 	private static void saveToFile(File file) {
 		if (file == null) return;
 		
-		try {
-			PrintStream s = new PrintStream(file);
-			
+		try (PrintStream s = new PrintStream(file)) {
 			// Dopisz pola do pliku
 			s.println("THREADPOOL_SIZE=".concat(Integer.valueOf(THREADPOOL_SIZE).toString()));
 			s.println("DB_PATH=".concat(DB_PATH));
 		
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
+		} catch (FileNotFoundException e) {}
 	}
 	
 	/**

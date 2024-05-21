@@ -1,6 +1,3 @@
-/**
- * 
- */
 package pl.wit.studata.gui.tabs;
 
 import java.awt.BorderLayout;
@@ -12,7 +9,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.LayoutManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -30,7 +26,6 @@ import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
-import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
 
@@ -38,12 +33,9 @@ import pl.wit.studata.InternalData;
 import pl.wit.studata.backend.UniDB;
 import pl.wit.studata.backend.models.ClassCriterion;
 import pl.wit.studata.backend.models.UniClass;
-import pl.wit.studata.backend.models.UniGroup;
 import pl.wit.studata.backend.models.UniStudent;
 import pl.wit.studata.gui.dialogs.MessageBoxes;
-import pl.wit.studata.gui.enums.ClassTableHeaders;
 import pl.wit.studata.gui.enums.GradingTableHeaders;
-import pl.wit.studata.gui.enums.StudentTableHeaders;
 import pl.wit.studata.gui.interfaces.IDatabaseInteractor;
 import pl.wit.studata.gui.widgets.FormWidget;
 import pl.wit.studata.gui.widgets.SearchableComboBox;
@@ -149,14 +141,9 @@ public class GradingTab extends JPanel implements ActionListener, IDatabaseInter
 	private List<UniClass> classes = null;
 	
 	/**
-	 * Mapa ocen studentów.
-	 */
-	private Map<UniStudent, Map<UniClass, Map<ClassCriterion, Integer>>> studentGradesMap;
-	
-	/**
 	 * Mapa ocen studentów (wersja lokalna).
 	 */
-	private Map<UniStudent, Map<UniClass, Map<ClassCriterion, Integer>>> localStudentGradesMap;
+	private Map<UniStudent, Map<UniClass, Map<ClassCriterion, Integer>>> localStudentGradesMap = null;
 	
 	/**
 	 * Zmienna do przechowywania, czy istnieją jakieś modyfikacje, które nie zostały ani zatwierdzone, ani odrzucone.
@@ -172,6 +159,7 @@ public class GradingTab extends JPanel implements ActionListener, IDatabaseInter
 	/**
 	 * Konstruktor bezparametryczny.
 	 */
+	@SuppressWarnings("serial")
 	public GradingTab() {
 		super();
 		
@@ -214,7 +202,8 @@ public class GradingTab extends JPanel implements ActionListener, IDatabaseInter
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JComboBox source = (JComboBox) e.getSource();
+				@SuppressWarnings("unchecked")
+				JComboBox<String> source = (JComboBox<String>) e.getSource();
 				String cardName = (String) source.getSelectedItem();
 				CardLayout cl = (CardLayout) pnlBotCards.getLayout();
 				cl.show(pnlBotCards, cardName);
@@ -243,8 +232,7 @@ public class GradingTab extends JPanel implements ActionListener, IDatabaseInter
 			
 			switch (header) {
 				case STUDENT:
-					comp = new SearchableComboBox<UniStudent>(new LinkedList<UniStudent>()) {{
-					}};
+					comp = new SearchableComboBox<UniStudent>(new LinkedList<UniStudent>());
 					break;
 				case CLASS:
 					comp = new SearchableComboBox<UniClass>(new LinkedList<UniClass>());
@@ -375,7 +363,7 @@ public class GradingTab extends JPanel implements ActionListener, IDatabaseInter
 	 */
 	private void updateTableRow(int rowIdx, UniStudent s, UniClass cl, ClassCriterion cr, int score) {
 		if (s == null || cl == null || cr == null) return;
-		if (rowIdx < 0 || rowIdx > tblData.getRowCount()) return;
+		if (rowIdx < 0 || rowIdx > tblData.getRowCount()) return;	
 				
 		Object[] rowData = new Object[] {
 			s,
@@ -446,7 +434,7 @@ public class GradingTab extends JPanel implements ActionListener, IDatabaseInter
 	/**
 	 * Metoda, która na podstawie pobranych wcześniej danych odpowiednio resetuje a następnie uaktualnia widżety formularza.
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "unused" })
 	private void updateWidgets() {
 		SearchableComboBox<UniStudent> scmbStudent = (SearchableComboBox<UniStudent>) formMap.get(GradingTableHeaders.STUDENT);
 		SearchableComboBox<UniStudent> scmbStudentQ = (SearchableComboBox<UniStudent>) formQueryMap.get(GradingTableHeaders.STUDENT);
@@ -625,7 +613,6 @@ public class GradingTab extends JPanel implements ActionListener, IDatabaseInter
 	public void pullFromDB() {
 		students = new ArrayList<>();
 		classes = new ArrayList<>();
-		studentGradesMap = new HashMap<>();
 		localStudentGradesMap = new HashMap<>();
 		
 		Thread tStudents = new Thread(() -> {
@@ -650,7 +637,6 @@ public class GradingTab extends JPanel implements ActionListener, IDatabaseInter
 		InternalData.EXECUTOR.execute(tClasses);
 		
 		synchronized (localStudentGradesMap) {
-			localStudentGradesMap = new HashMap<>();
 			UniDB db = InternalData.DATABASE;
 			Map<UniStudent, Map<UniClass, Map<ClassCriterion, Integer>>> dbMap = null;
 
@@ -658,7 +644,6 @@ public class GradingTab extends JPanel implements ActionListener, IDatabaseInter
 			    dbMap = db.getStudentGradesMap();
 			}
 			
-			Map<UniStudent, Map<UniClass, Map<ClassCriterion, Integer>>> x = new HashMap<>();
 			synchronized (dbMap) {
 				nestedCopyMap(localStudentGradesMap, dbMap);
 			}

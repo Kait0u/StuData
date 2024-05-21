@@ -4,8 +4,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.util.ArrayList;
 
-//Klasa reprezentująca przedmiot
-
 import java.util.List;
 import java.util.Objects;
 
@@ -125,6 +123,7 @@ public class UniClass implements Serializable {
 		dout.writeUTF(className);
 	}
 
+	@SuppressWarnings("unused")
 	public void loadFromFile(DataInputStream din) throws Exception {
 		code = din.readUTF();
 		className = din.readUTF();

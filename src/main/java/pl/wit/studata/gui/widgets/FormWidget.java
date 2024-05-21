@@ -7,18 +7,18 @@ import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.LayoutManager;
 import java.util.Map;
 
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 
 /**
- * 
+ * Klasa opisująca widżet formularza, który może zajmować różne inne widżety sparowane z etykietą.
  */
 public class FormWidget extends JPanel {
+	private static final long serialVersionUID = 1L;
+
 	/**
 	 * Menedżer układu
 	 */

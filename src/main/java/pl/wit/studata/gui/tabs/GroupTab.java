@@ -12,7 +12,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.LayoutManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -29,22 +28,16 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSpinner;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JViewport;
 import javax.swing.ListSelectionModel;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.SwingUtilities;
 
-import pl.wit.studata.AppData;
 import pl.wit.studata.InternalData;
 import pl.wit.studata.backend.UniDB;
 import pl.wit.studata.backend.models.UniGroup;
-import pl.wit.studata.backend.models.UniStudent;
 import pl.wit.studata.gui.dialogs.MessageBoxes;
 import pl.wit.studata.gui.enums.GroupTableHeaders;
-import pl.wit.studata.gui.enums.StudentTableHeaders;
 import pl.wit.studata.gui.interfaces.IDatabaseInteractor;
 import pl.wit.studata.gui.widgets.FormWidget;
 import pl.wit.studata.gui.widgets.TableWidget;
@@ -166,6 +159,7 @@ private static final long serialVersionUID = 1L;
 	/**
 	 * Konstruktor bezparametryczny. 
 	 */
+	@SuppressWarnings("serial")
 	public GroupTab() {
 		super();
 		
@@ -208,7 +202,8 @@ private static final long serialVersionUID = 1L;
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JComboBox source = (JComboBox) e.getSource();
+				@SuppressWarnings("unchecked")
+				JComboBox<String> source = (JComboBox<String>) e.getSource();
 				String cardName = (String) source.getSelectedItem();
 				CardLayout cl = (CardLayout) pnlBotCards.getLayout();
 				cl.show(pnlBotCards, cardName);

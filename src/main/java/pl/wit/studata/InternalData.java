@@ -14,7 +14,6 @@ import java.util.concurrent.Executors;
 import javax.swing.JFrame;
 
 import pl.wit.studata.backend.UniDB;
-import pl.wit.studata.gui.dialogs.MessageBoxes;
 
 /**
  * Klasa przechowująca wewnętrzne referencje do obiektów, od których wymaga się, by móc uzyskać do nich referencję z każdego miejsca w programie. 

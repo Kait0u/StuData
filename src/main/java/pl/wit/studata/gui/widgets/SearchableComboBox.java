@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 
+import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JTextField;
@@ -47,6 +48,7 @@ public class SearchableComboBox<T> extends JComboBox<T> {
                 filterList(text);
             }
         });
+        setBorder(BorderFactory.createLoweredBevelBorder());
     }
 
     private void filterList(String text) {
@@ -101,7 +103,8 @@ public class SearchableComboBox<T> extends JComboBox<T> {
         return size;
     }
     
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public T getSelectedItem() {
     	T result = null;
     	try {

@@ -10,7 +10,8 @@ import java.util.ArrayList;
  * Klasa reprezentująca widżet składający się z listy oraz przycisków dodawania, edycji i usuwania zeń elementów.
  */
 public class CRUDList extends JPanel {
-
+    private static final long serialVersionUID = 1L;
+	
     private DefaultListModel<Object> listModel;
     private JList<Object> list;
     private JButton addButton;

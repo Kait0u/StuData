@@ -1,13 +1,11 @@
 package pl.wit.studata.backend.fileio;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.Test;
 
 import pl.wit.studata.backend.models.ClassCriterion;
-
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 
 
 /**

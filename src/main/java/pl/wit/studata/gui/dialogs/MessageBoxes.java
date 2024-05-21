@@ -1,11 +1,6 @@
-/**
- * 
- */
 package pl.wit.studata.gui.dialogs;
 
 import javax.swing.JOptionPane;
-
-import org.javatuples.Pair;
 
 /**
  * Klasa o metodach statycznych służących do powoływana okienek dialogowych.

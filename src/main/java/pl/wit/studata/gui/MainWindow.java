@@ -1,6 +1,3 @@
-/**
- * 
- */
 package pl.wit.studata.gui;
 
 import java.awt.BorderLayout;
@@ -11,11 +8,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -31,7 +25,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import pl.wit.studata.AppData;
-import pl.wit.studata.Config;
 import pl.wit.studata.InternalData;
 import pl.wit.studata.backend.UniDB;
 import pl.wit.studata.gui.dialogs.ConfigDialog;
@@ -64,6 +57,7 @@ public class MainWindow extends JFrame {
 	/**
 	 * Przycisk-menu "About", które wywoła informacje o programie.
 	 */
+	@SuppressWarnings("unused") // Jest używany, Eclipse tego z jakiegoś powodu nie rozpoznaje.
 	private JMenuItem mnAbout = null;
 
 	/**

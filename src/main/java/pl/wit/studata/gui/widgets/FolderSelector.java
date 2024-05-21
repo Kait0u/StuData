@@ -7,11 +7,13 @@ import java.awt.event.ActionListener;
 import java.io.File;
 
 /**
- * 
+ * Klasa opisująca widżet wyboru folderu.
  * @author Jakub Jaworski
  */
 public class FolderSelector extends JPanel {
-    private JTextField textField;
+    private static final long serialVersionUID = 1L;
+    
+	private JTextField textField;
     private JButton browseButton;
     private String selectedPath;
 

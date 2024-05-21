@@ -4,14 +4,7 @@
 package pl.wit.studata.gui.dialogs;
 
 import java.awt.BorderLayout;
-import java.awt.Dialog;
 import java.awt.Dimension;
-import java.awt.Frame;
-import java.awt.GraphicsConfiguration;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.GridLayout;
-import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -34,6 +27,8 @@ import pl.wit.studata.gui.widgets.FormWidget;
  * 
  */
 public class ConfigDialog extends JDialog {
+	private static final long serialVersionUID = 1L;
+
 	private static final String TITLE = AppData.APP_TITLE.concat(" - Config");
 	
 	private JSpinner spnThreadPool = null;

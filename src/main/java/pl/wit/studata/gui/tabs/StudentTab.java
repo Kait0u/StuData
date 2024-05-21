@@ -29,7 +29,6 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.SwingUtilities;
 
 import pl.wit.studata.AppData;
 import pl.wit.studata.InternalData;
@@ -40,7 +39,6 @@ import pl.wit.studata.gui.dialogs.MessageBoxes;
 import pl.wit.studata.gui.enums.StudentTableHeaders;
 import pl.wit.studata.gui.interfaces.IDatabaseInteractor;
 import pl.wit.studata.gui.widgets.FormWidget;
-
 import pl.wit.studata.gui.widgets.TableWidget;
 
 /**
@@ -217,7 +215,8 @@ public class StudentTab extends JPanel implements ActionListener, IDatabaseInter
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JComboBox source = (JComboBox) e.getSource();
+				@SuppressWarnings("unchecked")
+				JComboBox<String> source = (JComboBox<String>) e.getSource();
 				String cardName = (String) source.getSelectedItem();
 				CardLayout cl = (CardLayout) pnlBotCards.getLayout();
 				cl.show(pnlBotCards, cardName);
@@ -440,6 +439,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabaseInter
 	private void updateGroupCombobox() {
 		@SuppressWarnings("unchecked")
 		JComboBox<String> cmbGroup = (JComboBox<String>) formMap.get(StudentTableHeaders.GROUP);
+		@SuppressWarnings("unchecked")
 		JComboBox<String> cmbGroupQuery = (JComboBox<String>) formQueryMap.get(StudentTableHeaders.GROUP);
 		
 		cmbGroup.removeAllItems();
@@ -557,6 +557,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabaseInter
 		JSpinner spnId = (JSpinner) formQueryMap.get(StudentTableHeaders.ID); 
 		JTextField tfFirstName = (JTextField) formQueryMap.get(StudentTableHeaders.FNAME);
 		JTextField tfLastName = (JTextField) formQueryMap.get(StudentTableHeaders.LNAME);
+		@SuppressWarnings("unchecked")
 		JComboBox<String> cmbGroup = (JComboBox<String>) formQueryMap.get(StudentTableHeaders.GROUP);
 		
 		Integer idQuery = (Integer) spnId.getValue();
@@ -609,6 +610,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabaseInter
 		JSpinner spnId = (JSpinner) formQueryMap.get(StudentTableHeaders.ID); 
 		JTextField tfFirstName = (JTextField) formQueryMap.get(StudentTableHeaders.FNAME);
 		JTextField tfLastName = (JTextField) formQueryMap.get(StudentTableHeaders.LNAME);
+		@SuppressWarnings("unchecked")
 		JComboBox<String> cmbGroup = (JComboBox<String>) formQueryMap.get(StudentTableHeaders.GROUP);
 		
 		spnId.setValue(-1);
@@ -680,6 +682,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabaseInter
 				JSpinner spnId = (JSpinner) formMap.get(StudentTableHeaders.ID); 
 				JTextField tfFirstName = (JTextField) formMap.get(StudentTableHeaders.FNAME);
 				JTextField tfLastName = (JTextField) formMap.get(StudentTableHeaders.LNAME);
+				@SuppressWarnings("unchecked")
 				JComboBox<String> cmbGroup = (JComboBox<String>) formMap.get(StudentTableHeaders.GROUP);
 				
 				spnId.setValue(studentId);

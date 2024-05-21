@@ -4,19 +4,14 @@
 package pl.wit.studata.gui.dialogs;
 
 import java.awt.BorderLayout;
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Frame;
-import java.awt.GraphicsConfiguration;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
@@ -33,6 +28,8 @@ import pl.wit.studata.gui.widgets.FormWidget;
  * Klasa reprezentująca okno dialogowe tworzenia / aktualizowania kryterium dla przedmiotu.
  */
 public class CriterionCreationDialog extends JDialog {
+	private static final long serialVersionUID = 1L;
+
 	private static final String TITLE = AppData.APP_TITLE.concat(" - Criterion Creator");
 	
 	private JTextField tfName = null;
@@ -119,6 +116,11 @@ public class CriterionCreationDialog extends JDialog {
 		return result;
 	}
 	
+	/**
+	 * Wyświetla okno dialogowe.
+	 * @param owner Okno nadrzędne / wywołujące.
+	 * @return Para: Nazwa (String), Liczba Punktów (Integer)
+	 */
 	public static Pair<String, Integer> showDialog(Window owner) {
 		CriterionCreationDialog dialog = new CriterionCreationDialog(owner);
 		dialog.setVisible(true);
