@@ -18,6 +18,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.function.Function;
 
 import javax.swing.BorderFactory;
@@ -708,43 +710,89 @@ public class StudentTab extends JPanel implements ActionListener, IDatabaseInter
 		localGroupAssignments = new HashMap<UniStudent, UniGroup>();
 		
 		
-		UniDB db = InternalData.DATABASE;
-		
-		List<UniStudent> dbStudentList = null;
-		List<UniGroup> dbGroupList = null;
-		Map<UniStudent, UniGroup> dbGroupAssignments = null;
-		
-		
-		// Pobierz listę studentów i mapę przypisań z bazy danych.
-		synchronized (db) {
-			dbStudentList = db.getStudentList();
-			dbGroupList = db.getGroupList();
-			dbGroupAssignments = db.getStudentGroupMap();
-		}
-		
 		// Skopiuj listy i mapy z bazy do lokalnych
-		synchronized (dbStudentList) {
-			dbStudentList.forEach((student) -> {
-				UniStudent studentCopy = student.deepCopy();
-				students.add(studentCopy);
-				copyToOriginal.put(studentCopy, student);
-				originalToCopy.put(student, studentCopy);
-			});
+		
+		
+		Future<?> futStudents = InternalData.EXECUTOR.submit(() -> {
+			UniDB dbLocal = InternalData.DATABASE;
+			List<UniStudent> dbStudentList = null;
+			
+			synchronized (dbLocal) {
+				dbStudentList = dbLocal.getStudentList();
+			}
+			
+			synchronized (dbStudentList) {
+				dbStudentList.forEach((student) -> {
+					synchronized (student) {
+						UniStudent studentCopy = student.deepCopy();
+						synchronized (students) {
+							students.add(studentCopy);
+						}
+						synchronized (copyToOriginal) {
+							copyToOriginal.put(studentCopy, student);
+						}
+						synchronized (originalToCopy) {
+							originalToCopy.put(student, studentCopy);
+						}
+					}
+				});
+			}
+		});
+		
+		UniDB db = InternalData.DATABASE;
+		List<UniGroup> dbGroupList = null;
+		
+		synchronized (db) {
+			dbGroupList = db.getGroupList();
 		}
 		
 		synchronized (dbGroupList) {
 			groups.addAll(dbGroupList);
 		}
 		
-		synchronized (dbGroupAssignments) {
-			dbGroupAssignments.entrySet().forEach((entry) -> {
-				UniStudent student = entry.getKey();
-				UniStudent studentCopy = originalToCopy.get(student);
-				
-				groupAssignments.put(student, entry.getValue());
-				localGroupAssignments.put(studentCopy, entry.getValue());
-			});
+		try {
+			futStudents.get();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			e.printStackTrace();
 		}
+		
+
+		Future<?> futAssignments = InternalData.EXECUTOR.submit(() -> {
+			UniDB dbLocal = InternalData.DATABASE;
+			Map<UniStudent, UniGroup> dbGroupAssignments = null;
+			
+			synchronized (dbLocal) {
+				dbGroupAssignments = dbLocal.getStudentGroupMap();
+			}
+			
+			synchronized (dbGroupAssignments) {
+				dbGroupAssignments.entrySet().forEach((entry) -> {
+					UniStudent student = entry.getKey();
+					synchronized (student) {
+						UniStudent studentCopy = originalToCopy.get(student);
+						synchronized (studentCopy) {
+							synchronized (groupAssignments) {
+								groupAssignments.put(student, entry.getValue());
+							}
+							synchronized (localGroupAssignments) {
+								localGroupAssignments.put(studentCopy, entry.getValue());
+							}
+						}
+					}
+				});
+			}
+		});
+		
+		try {
+			futAssignments.get();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 	@Override

@@ -71,19 +71,12 @@ public class InternalData {
 		if (!DATABASE_FILE.exists()) {
 			try {
 				DATABASE_FILE.createNewFile();
-			} catch (IOException e) {
-			}
+			} catch (IOException e) { }
 		}
 		
 		try {
 			DATABASE.loadFromFile(DATABASE_FILE.getAbsolutePath());
-		} catch (Exception e) {
-			
-		}
-		try {
-			
-		} catch (Exception e) {
-		}
+		} catch (Exception e) {	}
 	}
 
 	/**
