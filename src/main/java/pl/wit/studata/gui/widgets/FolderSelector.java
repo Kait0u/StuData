@@ -34,6 +34,9 @@ public class FolderSelector extends JPanel {
         add(browseButton, BorderLayout.EAST);
     }
     
+    /**
+     * Konstruktor przyjmujący domyślną ścieżkę.
+     */
     public FolderSelector(String defaultPath) {
     	this();
     	selectedPath = defaultPath;
@@ -56,7 +59,11 @@ public class FolderSelector extends JPanel {
         return selectedPath;
     }
     
-    public void setPath() {
-    	
+    /**
+     * 
+     * @deprecated
+     */
+    public void setPath(String path) {
+
     }
 }

@@ -8,6 +8,8 @@ import java.util.ArrayList;
 
 /**
  * Klasa reprezentująca widżet składający się z listy oraz przycisków dodawania, edycji i usuwania zeń elementów.
+ * 
+ * @author Jakub Jaworski
  */
 public class CRUDList extends JPanel {
     private static final long serialVersionUID = 1L;
@@ -109,6 +111,9 @@ public class CRUDList extends JPanel {
         }
     }
     
+    /**
+     * Metoda do aktualizowania zaznaczonego wpisu.
+     */
     public void updateSelectedItem(Object newValue) {
     	int selectedIndex = list.getSelectedIndex();
     	if (newValue != null && selectedIndex >= 0) {

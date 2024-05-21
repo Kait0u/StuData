@@ -15,6 +15,8 @@ import javax.swing.JSeparator;
 
 /**
  * Klasa opisująca widżet formularza, który może zajmować różne inne widżety sparowane z etykietą.
+ * 
+ * @author Jakub Jaworski
  */
 public class FormWidget extends JPanel {
 	private static final long serialVersionUID = 1L;

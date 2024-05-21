@@ -1,5 +1,10 @@
 package pl.wit.studata.gui.enums;
 
+/**
+ * Klasa wyliczeniowa zawierająca nagłówki kolumn w tabeli z przedmiotami.
+ * 
+ * @author Jakub Jaworski
+ */
 public enum ClassTableHeaders {
 	CODE("Code"),
 	NAME("Name"),

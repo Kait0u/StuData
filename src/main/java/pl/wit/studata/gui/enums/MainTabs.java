@@ -5,6 +5,8 @@ package pl.wit.studata.gui.enums;
 
 /**
  * Klasa wyliczeniowa wspierająca tworzenie zakładek poprzez m.in.: dostarczanie ich nazw.
+ * 
+ * @author Jakub Jaworski
  */
 public enum MainTabs {
 	STUDENTS("Students"),

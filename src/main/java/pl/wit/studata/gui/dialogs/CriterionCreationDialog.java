@@ -127,6 +127,13 @@ public class CriterionCreationDialog extends JDialog {
 		return dialog.getResult();
 	}
 	
+	/**
+	 * Wyświetla okienko dialogowe.
+	 * @param owner Okno nadrzędne.
+	 * @param name Nazwa kryterium.
+	 * @param maxPoints Maksymalna liczba punktów za to kryterium.
+	 * @return Para: name, maxPoints
+	 */
 	public static Pair<String, Integer> showDialog(Window owner, String name, Integer maxPoints) {
 		CriterionCreationDialog dialog = new CriterionCreationDialog(owner);
 		

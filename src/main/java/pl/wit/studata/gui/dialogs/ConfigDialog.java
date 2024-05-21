@@ -24,7 +24,9 @@ import pl.wit.studata.gui.widgets.FolderSelector;
 import pl.wit.studata.gui.widgets.FormWidget;
 
 /**
+ * Klasa reprezentująca okno dialogowe konfiguracji.
  * 
+ * @author Jakub Jaworski
  */
 public class ConfigDialog extends JDialog {
 	private static final long serialVersionUID = 1L;

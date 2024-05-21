@@ -49,6 +49,8 @@ public class UniDB {
 
 	/**
 	 * Metoda dodania studenta do grupy
+	 * @param student Student
+	 * @param group Grupa
 	 */
 	public void assignStudent(UniStudent student, UniGroup group) {
 		// Sprawdzenie, czy student i grupa istnieją w bazie danych
@@ -61,8 +63,9 @@ public class UniDB {
 		}
 	}
 
-	/*
+	/**
 	 * Metoda dodania nowego przedmiotu do listy przedmiotów
+	 * @param uniClass Przedmiot
 	 */
 	public void addClass(UniClass uniClass) {
 		if (!classList.contains(uniClass)) {
@@ -72,8 +75,9 @@ public class UniDB {
 		}
 	}
 
-	/*
+	/**
 	 * Usuwanie studenta z wszystkich list
+	 * @param student Student
 	 */
 	public void deleteStudent(UniStudent student) {
 		if (studentList.contains(student)) {
@@ -87,8 +91,9 @@ public class UniDB {
 		}
 	}
 
-	/*
+	/**
 	 * Metoda usuwania przedmiotu z wszystkich list
+	 * @param uniClass Przedmiot
 	 */
 	public void deleteClass(UniClass uniClass) {
 		if (classList.contains(uniClass)) {
@@ -101,6 +106,10 @@ public class UniDB {
 
 	/**
 	 * Metoda wystawiająca studentowi ocenę z danego przedmiotu w danym kryterium
+	 * @param student Student
+	 * @param uniClass Przedmiot
+	 * @param criterion Kryterium
+	 * @param points Ocena
 	 */
 	public void addGradeToStudent(UniStudent student, UniClass uniClass, ClassCriterion criterion, int points) {
 		// Sprawdzenie, czy student istnieje w bazie danych
@@ -134,8 +143,10 @@ public class UniDB {
 
 	}
 
-	/*
-	 * Metody aktualizujące poszczególne listy
+	// Metody aktualizujące poszczególne listy
+	
+	/**
+	 * Metoda aktualizująca listę studentów
 	 */
 	public void updateStudents(List<UniStudent> newStudentList) {
 		this.studentList = new LinkedList<>(newStudentList);
@@ -145,6 +156,9 @@ public class UniDB {
 
 	}
 
+	/**
+	 * Metoda aktualizująca listę grup
+	 */
 	public void updateGroups(List<UniGroup> newGroupList) {
 		this.groupList = new LinkedList<>(newGroupList);
 
@@ -160,6 +174,9 @@ public class UniDB {
 			this.studentGroupMap.remove(key);
 	}
 
+	/**
+	 * Metoda aktualizująca listę przedmiotów
+	 */
 	public void updateClasses(List<UniClass> newClassList) {
 		this.classList = new LinkedList<>(newClassList);
 
@@ -173,10 +190,17 @@ public class UniDB {
 
 	}
 
+	/**
+	 * Metoda aktualizująca mapę przypisań studentów do grup.
+	 */
 	public void updateStudentGroupMap(Map<UniStudent, UniGroup> newStudentGroupMap) {
 		this.studentGroupMap = new HashMap<>(newStudentGroupMap);
 	}
 
+	/**
+	 * Metoda aktualizująca mapę przypisań kryteriów do ocen
+	 * @deprecated
+	 */
 	public void updateClassCriterionMap(Map<UniClass, List<ClassCriterion>> newClassCriterionMap) {
 		this.classCriterionMap = new HashMap<>(newClassCriterionMap);
 
@@ -189,6 +213,10 @@ public class UniDB {
 		}
 	}
 
+	/**
+	 * Metoda aktualizująca mapę ocen wystawionych studentom w danych kategoriach.
+	 * @param newStudentGradesMap Nowa mapa.
+	 */
 	public void updateStudentGradesMap(
 			Map<UniStudent, Map<UniClass, Map<ClassCriterion, Integer>>> newStudentGradesMap) {
 //		this.studentGradesMap = new HashMap<>(newStudentGradesMap);
@@ -228,6 +256,9 @@ public class UniDB {
 		return studentGradesMap;
 	}
 
+	/**
+	 * @deprecated
+	 */
 	public Map<UniClass, List<ClassCriterion>> getClassCriterionMap() {
 		return classCriterionMap;
 	}

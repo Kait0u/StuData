@@ -16,7 +16,14 @@ import java.io.PrintStream;
  * @author Jakub Jaworski
  */
 public class Config {
+	/**
+     * Domyślny rozmiar puli wątków.
+     */
 	public static int THREADPOOL_SIZE = 4;
+	
+	/**
+     * Ścieżka do pliku bazy danych.
+     */
 	public static String DB_PATH = "./database/data.studata";
 
 	private static final String CFG_PATH = "./config.cfg";

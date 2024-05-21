@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-/*
+/**
  * Dodanie kryterium do listy
  * @author Iryna Mishchenko
  */

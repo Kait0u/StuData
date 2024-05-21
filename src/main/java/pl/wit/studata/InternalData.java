@@ -101,6 +101,10 @@ public class InternalData {
 		WINLIST.clear();
 	}
 	
+	/**
+	 * Usuwa okienko.
+	 * @param window Obiekt wskazujący na okienko
+	 */
 	public static void destroyWindow(JFrame window) {
 		if (window != null && WINLIST.contains(window)) {
 			WINLIST.remove(window);

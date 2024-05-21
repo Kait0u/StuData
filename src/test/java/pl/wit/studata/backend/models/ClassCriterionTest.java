@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 
 /**
- * Klasa testowa sprawdzają poprawność działania Klasy ClassSriterion 
+ * Klasa testowa sprawdzają poprawność działania Klasy ClassCriterion 
  * 
  * @author Iryna Mishchenko
  */

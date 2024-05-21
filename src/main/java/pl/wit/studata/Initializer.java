@@ -5,6 +5,10 @@ package pl.wit.studata;
  * @author Jakub Jaworski
  */
 public class Initializer {
+	/**
+     * Metoda inicjalizuje aplikację.
+     * Wczytuje konfigurację z pliku i ustawia dane wewnętrzne.
+     */
 	public static void initialize() {
 		Config.loadFromFile();
 		InternalData.setupFromConfig();

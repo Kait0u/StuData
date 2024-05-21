@@ -1,5 +1,10 @@
 package pl.wit.studata.gui.enums;
 
+/**
+ * Klasa wyliczeniowa zawierająca nagłówki kolumn w tabeli z ocenami.
+ * 
+ * @author Jakub Jaworski
+ */
 public enum GradingTableHeaders {
 	STUDENT("Student"),
 	CLASS("Class"),

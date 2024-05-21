@@ -3,8 +3,11 @@
  */
 package pl.wit.studata.gui.enums;
 
+
 /**
  * Klasa wyliczeniowa zbierająca w jednym miejscu opcje z menu "Menu"
+ * 
+ * @author Jakub Jaworski
  */
 public enum MainMenuItems {
 	SAVE("Save"),

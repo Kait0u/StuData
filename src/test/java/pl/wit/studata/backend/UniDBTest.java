@@ -21,7 +21,7 @@ import pl.wit.studata.backend.models.UniClass;
 import pl.wit.studata.backend.models.UniGroup;
 import pl.wit.studata.backend.models.UniStudent;
 
-/*
+/**
  * Testowanie klasy UniDB
  * @author Iryna Mishchenko
  */
@@ -51,7 +51,7 @@ public class UniDBTest {
         uniDB.addClass(math1);
     }
 	
-	/*
+	/**
 	 * Sprawdzenie poprawnego działania metody dodawania studenta do grupy
 	 * */
 	@Test
@@ -63,7 +63,7 @@ public class UniDBTest {
     uniDB.assignStudent(bp, ID06IO1); // dodajemy studenta do grupy
     assertEquals(ID06IO1, uniDB.getStudentGroupMap().get(bp)); // spawdzamy czy grupa ID06IO1 mieści na liście studenta bp
 	}
-	/*
+	/**
 	 * Sprawdzenie poprawnego działania metody dodawania przedmiota do listy
 	 * */
 	@Test
@@ -76,8 +76,8 @@ public class UniDBTest {
         uniDB.getClassList().add(jp1); // dodajemy przedmiot do listy
         assertEquals(2, uniDB.getClassList().size()); //Sprawdzamy rozmiar listy przedmiotów po dodaniu jp1
 	}
-/*
- * Metody do sprawdzenia poprawnego działania metody deleteStudent i deleteClass
+/**
+ * Metoda do sprawdzenia poprawnego działania metody deleteStudent i deleteClass
  * */
 	@Test
 	public void testDeleteStudent() {
@@ -102,7 +102,7 @@ public class UniDBTest {
         assertEquals(45, grades.get(kryterium1).intValue()); //sparwdzamy czy wartość poprawnie dopisana
 	}
 
-	/*
+	/**
 	 * Sprawdzamy poprawność działania metod updateStudents, updateGroups, updateClasses, updateStudentGroupMap, updateStudentGradesMap
 	 * */
 	@Test
