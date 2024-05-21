@@ -422,8 +422,7 @@ public class StudentTab extends JPanel implements ActionListener, IDatabaseInter
 			for (UniStudent s: students) {
 				addTableRow(s);
 			}
-		} 
-			
+		} 	
 	}
 	
 	/**

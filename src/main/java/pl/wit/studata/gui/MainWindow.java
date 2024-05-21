@@ -33,12 +33,14 @@ import javax.swing.event.ChangeListener;
 import pl.wit.studata.AppData;
 import pl.wit.studata.Config;
 import pl.wit.studata.InternalData;
+import pl.wit.studata.backend.UniDB;
 import pl.wit.studata.gui.dialogs.ConfigDialog;
 import pl.wit.studata.gui.dialogs.MessageBoxes;
 import pl.wit.studata.gui.enums.MainMenuItems;
 import pl.wit.studata.gui.enums.MainTabs;
 import pl.wit.studata.gui.interfaces.IDatabaseInteractor;
 import pl.wit.studata.gui.tabs.ClassTab;
+import pl.wit.studata.gui.tabs.GradingTab;
 import pl.wit.studata.gui.tabs.GroupTab;
 import pl.wit.studata.gui.tabs.StudentTab;
 
@@ -183,9 +185,12 @@ public class MainWindow extends JFrame {
 			case CLASSES:
 				tabPanel = new ClassTab();
 				break;
+			case GRADING:
+				tabPanel = new GradingTab();
+				break;
 			default:
 				tabPanel = new JPanel();
-				tabPanel.add(new JLabel("Welcome to the tab: ".concat(name).concat("!")));
+				tabPanel.add(new JLabel("Welcome to the tab: ".concat(name).concat("! You probably got lost and that's how you got here!")));
 				break;
 			}
 
@@ -310,21 +315,6 @@ public class MainWindow extends JFrame {
 		}
 		
 	}
-	
-//	private Thread save() {
-//		boolean shouldSave = MessageBoxes.showConfirmationBox("Unsaved Changes!",
-//				"The current tab has got some unsaved changes. Would you like to save them?");
-//		
-//		Thread t = null;
-//		
-//		if (shouldSave) {
-//			t = new Thread(() -> currentTab.pushToDB());
-//			InternalData.EXECUTOR.execute(t);
-//		} else currentTab.nullifyChanges();
-//		
-//
-//		return t;
-//	}
 
 	private void quit() {
 		boolean canQuit = false;
@@ -340,7 +330,10 @@ public class MainWindow extends JFrame {
 
 		try {
 			// TODO Zapis bazy do pliku.
-			 InternalData.DATABASE.saveToFile(InternalData.DATABASE_PATH);
+			UniDB db = InternalData.DATABASE;
+			synchronized (db) {
+				db.saveToFile(InternalData.DATABASE_PATH);
+			}
 		} catch (Exception e) {
 			MessageBoxes.showErrorBox("Error!", e.getMessage());
 		}

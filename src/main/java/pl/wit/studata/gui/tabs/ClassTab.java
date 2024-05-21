@@ -56,6 +56,8 @@ import pl.wit.studata.gui.widgets.TableWidget;
  */
 public class ClassTab extends JPanel implements IDatabaseInteractor, ActionListener {
 
+	private static final long serialVersionUID = 1L;
+
 	/**
 	 * Panel górny. 
 	 * (Wyświetlanie danych)

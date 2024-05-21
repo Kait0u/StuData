@@ -79,12 +79,11 @@ public class InternalData {
 		try {
 			DATABASE.loadFromFile(DATABASE_FILE.getAbsolutePath());
 		} catch (Exception e) {
-
+			
 		}
 		try {
 			
 		} catch (Exception e) {
-
 		}
 	}
 

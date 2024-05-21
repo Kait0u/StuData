@@ -53,7 +53,7 @@ public class UniDB {
 	public void assignStudent(UniStudent student, UniGroup group) {
 		// Sprawdzenie, czy student i grupa istnieją w bazie danych
 		if (studentList.contains(student) && groupList.contains(group)) {
-			//	 Dodanie przypisania studenta do grupy
+			// Dodanie przypisania studenta do grupy
 			studentGroupMap.put(student, group);
 		} else {
 			// Można dodać odpowiednią obsługę błędów, np. rzucenie wyjątku
@@ -139,40 +139,38 @@ public class UniDB {
 	 */
 	public void updateStudents(List<UniStudent> newStudentList) {
 		this.studentList = new LinkedList<>(newStudentList);
-		
+
 		studentGroupMap.entrySet().removeIf(entry -> !this.studentList.contains(entry.getKey()));
 		studentGradesMap.entrySet().removeIf(entry -> !this.studentList.contains(entry.getKey()));
-		
+
 	}
 
 	public void updateGroups(List<UniGroup> newGroupList) {
 		this.groupList = new LinkedList<>(newGroupList);
-		
+
 		// Znajdź, kto jest w grupie, której już nie ma.
 		Set<UniStudent> keysToRemove = new HashSet<>();
-		for (Map.Entry<UniStudent, UniGroup> entry: studentGroupMap.entrySet()) {
+		for (Map.Entry<UniStudent, UniGroup> entry : studentGroupMap.entrySet()) {
 			if (!this.groupList.contains(entry.getValue()))
 				keysToRemove.add(entry.getKey());
 		}
-		
+
 		// Usuń nieważne klucze.
-		for (UniStudent key: keysToRemove)
+		for (UniStudent key : keysToRemove)
 			this.studentGroupMap.remove(key);
 	}
 
 	public void updateClasses(List<UniClass> newClassList) {
 		this.classList = new LinkedList<>(newClassList);
-		
-		
+
 		// Usuń nieważne klucze.
 		classCriterionMap.entrySet().removeIf(entry -> !this.classList.contains(entry.getKey()));
-		
-		
-		for( UniStudent student: studentGradesMap.keySet()) {
+
+		for (UniStudent student : studentGradesMap.keySet()) {
 			Map<UniClass, Map<ClassCriterion, Integer>> val = studentGradesMap.get(student);
 			val.entrySet().removeIf(entry -> !this.classList.contains(entry.getKey()));
 		}
-		
+
 	}
 
 	public void updateStudentGroupMap(Map<UniStudent, UniGroup> newStudentGroupMap) {
@@ -181,10 +179,10 @@ public class UniDB {
 
 	public void updateClassCriterionMap(Map<UniClass, List<ClassCriterion>> newClassCriterionMap) {
 		this.classCriterionMap = new HashMap<>(newClassCriterionMap);
-		
-		for( UniStudent student: studentGradesMap.keySet()) {
+
+		for (UniStudent student : studentGradesMap.keySet()) {
 			Map<UniClass, Map<ClassCriterion, Integer>> val = studentGradesMap.get(student);
-			for (UniClass key: val.keySet()) {
+			for (UniClass key : val.keySet()) {
 				Map<ClassCriterion, Integer> mark = val.get(key);
 				mark.entrySet().removeIf(entry -> !classCriterionMap.get(key).contains(entry.getKey()));
 			}
@@ -193,7 +191,8 @@ public class UniDB {
 
 	public void updateStudentGradesMap(
 			Map<UniStudent, Map<UniClass, Map<ClassCriterion, Integer>>> newStudentGradesMap) {
-		this.studentGradesMap = new HashMap<>(newStudentGradesMap);
+//		this.studentGradesMap = new HashMap<>(newStudentGradesMap);
+		this.studentGradesMap = newStudentGradesMap;
 	}
 
 	// gettery i settery
@@ -232,277 +231,302 @@ public class UniDB {
 	public Map<UniClass, List<ClassCriterion>> getClassCriterionMap() {
 		return classCriterionMap;
 	}
-	
-	
+
 	// zapis i odczyt z pliku
-	
+
 	/**
 	 * Metoda pobierająca listę studentów ze strumienia.
+	 * 
 	 * @param din Strumień wejściowy.
 	 * @throws Exception
 	 */
 	private void loadStudentsFromFile(DataInputStream din) throws Exception {
 		int listLen = din.readInt();
-		for(int i = 0; i < listLen; ++i) {
+		for (int i = 0; i < listLen; ++i) {
 			Serializable s = Serializer.loadObj(din);
-			if(s instanceof UniStudent) studentList.add((UniStudent)s);
-			else throw new Exception("Object type isn't UniStudent");
+			if (s instanceof UniStudent)
+				studentList.add((UniStudent) s);
+			else
+				throw new Exception("Object type isn't UniStudent");
 		}
 	}
-	
+
 	/**
 	 * Metoda pobierająca listę grup ze strumienia.
+	 * 
 	 * @param din Strumień wejściowy.
 	 * @throws Exception
 	 */
 	private void loadGroupsFromFile(DataInputStream din) throws Exception {
 		int listLen = din.readInt();
-		for(int i = 0; i < listLen; ++i) {
+		for (int i = 0; i < listLen; ++i) {
 			Serializable s = Serializer.loadObj(din);
-			if(s instanceof UniGroup) groupList.add((UniGroup)s);
-			else throw new Exception("Object type isn't UniGroup");
+			if (s instanceof UniGroup)
+				groupList.add((UniGroup) s);
+			else
+				throw new Exception("Object type isn't UniGroup");
 		}
 	}
-	
+
 	/**
 	 * Metoda pobierająca listę przedmiotów ze strumienia.
+	 * 
 	 * @param din Strumień wejściowy.
 	 * @throws Exception
 	 */
 	private void loadClassesFromFile(DataInputStream din) throws Exception {
 		int listLen = din.readInt();
-		for(int i = 0; i < listLen; ++i) {
+		for (int i = 0; i < listLen; ++i) {
 			Serializable s = Serializer.loadObj(din);
-			if(s instanceof UniClass) classList.add((UniClass)s);
-			else throw new Exception("Object type isn't UniClass");
+			if (s instanceof UniClass)
+				classList.add((UniClass) s);
+			else
+				throw new Exception("Object type isn't UniClass");
 		}
 	}
-	
+
 	/**
-	 * Metoda pobierająca cryteria, przydzielone do przedmiotów, ze strumienia i zapisująca ich do classCriterionMap.
-	 * Potrzebuje wypełnionej listy przedmiotów classList.
+	 * Metoda pobierająca cryteria, przydzielone do przedmiotów, ze strumienia i
+	 * zapisująca ich do classCriterionMap. Potrzebuje wypełnionej listy przedmiotów
+	 * classList.
+	 * 
 	 * @param din Strumień wejściowy.
 	 * @throws Exception
 	 */
 	private void loadClassCriterionMap(DataInputStream din) throws Exception {
 		int mapLen = din.readInt();
-		for(int i = 0; i < mapLen; ++i) {
+		for (int i = 0; i < mapLen; ++i) {
 			UniClass key = UniClass.loadMapRef(din, classList);
 			List<ClassCriterion> list = new ArrayList<ClassCriterion>();
 			int listLen = din.readInt();
-			for(int j = 0; j < listLen; ++j) {
-				ClassCriterion val = (ClassCriterion)Serializer.loadObj(din);
-				if(val != null) {
+			for (int j = 0; j < listLen; ++j) {
+				ClassCriterion val = (ClassCriterion) Serializer.loadObj(din);
+				if (val != null) {
 					list.add(val);
 				}
 			}
-			if(key != null) {
+			if (key != null) {
 				classCriterionMap.put(key, list);
 			}
 		}
 	}
-	
-	
+
 	private void saveClassCriterionMap(DataOutputStream dout) throws Exception {
 		dout.writeInt(classCriterionMap.keySet().size());
-		for(UniClass key: classCriterionMap.keySet()) {
+		for (UniClass key : classCriterionMap.keySet()) {
 			key.saveMapElem(dout);
 			List<ClassCriterion> criteria = classCriterionMap.get(key);
 			dout.writeInt(criteria.size());
-			
-			for(ClassCriterion gr: criteria) {
+
+			for (ClassCriterion gr : criteria) {
 				gr.saveToFile(dout);
 			}
 		}
 	}
-	
+
 	/**
-	 * Metoda pobierająca przydział studentów do grup ze strumienia i zapisująca go do studentGroupMap.
-	 * Potrzebuje wypełnionych list studentów i grup (studentList oraz groupList).
+	 * Metoda pobierająca przydział studentów do grup ze strumienia i zapisująca go
+	 * do studentGroupMap. Potrzebuje wypełnionych list studentów i grup
+	 * (studentList oraz groupList).
+	 * 
 	 * @param din Strumień wejściowy.
 	 * @throws Exception
 	 */
 	private void loadStudentGroupMap(DataInputStream din) throws Exception {
 		int mapLen = din.readInt();
-		for(int i = 0; i < mapLen; ++i) {
+		for (int i = 0; i < mapLen; ++i) {
 			UniStudent key = UniStudent.loadMapRef(din, studentList);
 			UniGroup gr = UniGroup.loadMapRef(din, groupList);
-			if(key != null && gr != null) {
+			if (key != null && gr != null) {
 				studentGroupMap.put(key, gr);
 			}
 		}
 	}
-	
+
 	/**
-	 * Metoda zapisująca zawartość studentGroupMap do strumienia.
-	 * Metoda nie zapisuje całych obiektów UniStudent i UniGroup, tylko odpowiednio ich studentId i groupCode.
+	 * Metoda zapisująca zawartość studentGroupMap do strumienia. Metoda nie
+	 * zapisuje całych obiektów UniStudent i UniGroup, tylko odpowiednio ich
+	 * studentId i groupCode.
+	 * 
 	 * @param dout Strumień wyjściowy.
 	 * @throws Exception
 	 */
 	private void saveStudentGroupMap(DataOutputStream dout) throws Exception {
 		dout.writeInt(studentGroupMap.size());
-		for(UniStudent key: studentGroupMap.keySet()) {
+		for (UniStudent key : studentGroupMap.keySet()) {
 			key.saveMapElem(dout);
 			UniGroup gr = studentGroupMap.get(key);
 			gr.saveMapElem(dout);
 		}
 	}
-	
+
 	/**
-	 * Metoda zapisująca zawartość classCriterionMap do strumienia.
-	 * Metoda nie zapisuje całych obiektów UniClass, tylko ich nazwy.
+	 * Metoda zapisująca zawartość classCriterionMap do strumienia. Metoda nie
+	 * zapisuje całych obiektów UniClass, tylko ich nazwy.
+	 * 
 	 * @param din Strumień wejściowy.
 	 * @throws Exception
 	 */
 	private void loadStudentGradesMap(DataInputStream din) throws Exception {
-		int mapLen = din.readInt();
-		for(int i = 0; i < mapLen; ++i) {
-			UniStudent key = UniStudent.loadMapRef(din, studentList);
-			Map<UniClass, Map<ClassCriterion, Integer>> classes = new HashMap<>();
-			int clMapLen = din.readInt();
-			for(int j = 0; j < clMapLen; ++j) {
-				UniClass clKey = UniClass.loadMapRef(din, classList);
-				Map<ClassCriterion, Integer> mark = new HashMap<>();
-				int mrkMapLen = din.readInt();
-				for(int k = 0; k < mrkMapLen; ++k) {
-					ClassCriterion cc = ClassCriterion.loadMapRef(din, clKey.getCriteriaList());
-					int val = din.readInt();
-					if(cc != null) {
-						mark.put(cc, val);
+		synchronized (studentGradesMap) {
+			int mapLen = din.readInt();
+			for (int i = 0; i < mapLen; ++i) {
+				UniStudent key = UniStudent.loadMapRef(din, studentList);
+				Map<UniClass, Map<ClassCriterion, Integer>> classes = new HashMap<>();
+				int clMapLen = din.readInt();
+				for (int j = 0; j < clMapLen; ++j) {
+					UniClass clKey = UniClass.loadMapRef(din, classList);
+					Map<ClassCriterion, Integer> mark = new HashMap<>();
+					int mrkMapLen = din.readInt();
+					for (int k = 0; k < mrkMapLen; ++k) {
+						ClassCriterion cc = ClassCriterion.loadMapRef(din, clKey.getCriteriaList());
+						int val = din.readInt();
+						if (cc != null) {
+							mark.put(cc, val);
+						}
+					}
+					if (clKey != null) {
+						classes.put(clKey, mark);
 					}
 				}
-				if(clKey != null) {
-					classes.put(clKey, mark);
+				if (key != null) {
+					studentGradesMap.put(key, classes);
 				}
-			}
-			if(key != null) {
-				studentGradesMap.put(key, classes);
 			}
 		}
 	}
-	
+
 	/**
-	 * Metoda zapisująca zawartość studentGradesMap do strumienia.
-	 * Metoda nie zapisuje całych obiektów UniStudent, UniClass lub ClassCriterion, tylko odpowiednio ich studentId, className oraz criterionName.
+	 * Metoda zapisująca zawartość studentGradesMap do strumienia. Metoda nie
+	 * zapisuje całych obiektów UniStudent, UniClass lub ClassCriterion, tylko
+	 * odpowiednio ich studentId, className oraz criterionName.
+	 * 
 	 * @param dout Strumień wyjściowy.
 	 * @throws Exception
 	 */
 	private void saveStudentGradesMap(DataOutputStream dout) throws Exception {
 		dout.writeInt(studentGradesMap.size());
-		for(UniStudent key: studentGradesMap.keySet()) {
+		for (UniStudent key : studentGradesMap.keySet()) {
 			key.saveMapElem(dout);
 			Map<UniClass, Map<ClassCriterion, Integer>> classes = studentGradesMap.get(key);
 			dout.writeInt(classes.size());
-			
-			for(UniClass cl: classes.keySet()) {
+
+			for (UniClass cl : classes.keySet()) {
 				cl.saveMapElem(dout);
 				Map<ClassCriterion, Integer> mark = classes.get(cl);
 				dout.writeInt(mark.size());
-				
-				for(ClassCriterion cc: mark.keySet()) {
+
+				for (ClassCriterion cc : mark.keySet()) {
 					cc.saveMapElem(dout);
 					dout.writeInt(mark.get(cc));
 				}
 			}
 		}
 	}
-	
+
 	/**
 	 * Metoda zapisująca zawartość studentList do strumienia.
+	 * 
 	 * @param dout Strumień wyjściowy.
 	 * @throws Exception
 	 */
-	public void saveStudentList(DataOutputStream dout) throws Exception{
+	public void saveStudentList(DataOutputStream dout) throws Exception {
 		int listLen = studentList.size();
 		dout.writeInt(listLen);
-		for(UniStudent s: studentList) {
+		for (UniStudent s : studentList) {
 			s.saveToFile(dout);
 		}
 	}
-	
+
 	/**
 	 * Metoda zapisująca zawartość groupList do strumienia.
+	 * 
 	 * @param dout Strumień wyjściowy.
 	 * @throws Exception
 	 */
-	public void saveGroupList(DataOutputStream dout) throws Exception{
+	public void saveGroupList(DataOutputStream dout) throws Exception {
 		int listLen = groupList.size();
 		dout.writeInt(listLen);
-		for(UniGroup s: groupList) {
+		for (UniGroup s : groupList) {
 			s.saveToFile(dout);
 		}
 	}
-	
+
 	/**
 	 * Metoda zapisująca zawartość classList do strumienia.
+	 * 
 	 * @param dout Strumień wyjściowy.
 	 * @throws Exception
 	 */
-	public void saveClassList(DataOutputStream dout) throws Exception{
+	public void saveClassList(DataOutputStream dout) throws Exception {
 		int listLen = classList.size();
 		dout.writeInt(listLen);
-		for(UniClass s: classList) {
+		for (UniClass s : classList) {
 			s.saveToFile(dout);
 		}
 	}
-	
+
 	/**
-	 * Metoda zapisująca bazę danych do pliku.
-	 * Struktura wynikowego pliku: <br>
-	 * studentList - groupList - classList - classCriterionMap - studentGroupMap - studentGradesMap.
+	 * Metoda zapisująca bazę danych do pliku. Struktura wynikowego pliku: <br>
+	 * studentList - groupList - classList - classCriterionMap - studentGroupMap -
+	 * studentGradesMap.
+	 * 
 	 * @param path Ścieżka do pliku wyjściowego.
 	 * @throws Exception
 	 */
-	public void saveToFile(String path) throws Exception{
+	public void saveToFile(String path) throws Exception {
 		FileOutputStream fs = new FileOutputStream(path);
 		DataOutputStream out = new DataOutputStream(fs);
 		saveToFile(out);
 	}
-	
+
 	/**
-	 * Metoda zapisująca bazę danych do strumienia.
-	 * Struktura wynikowego pliku: <br>
-	 * studentList - groupList - classList - classCriterionMap - studentGroupMap - studentGradesMap.
+	 * Metoda zapisująca bazę danych do strumienia. Struktura wynikowego pliku: <br>
+	 * studentList - groupList - classList - classCriterionMap - studentGroupMap -
+	 * studentGradesMap.
+	 * 
 	 * @param dout Strumień wyjściowy.
 	 * @throws Exception
 	 */
-	public void saveToFile(DataOutputStream dout) throws Exception{
+	public synchronized void saveToFile(DataOutputStream dout) throws Exception {
 		saveStudentList(dout);
 		saveGroupList(dout);
 		saveClassList(dout);
-		
-		
+
 		saveClassCriterionMap(dout);
 		saveStudentGroupMap(dout);
 		saveStudentGradesMap(dout);
-			
+
 	}
-	
+
 	/**
-	 * Metoda wypełniająca bazę danych na podstawie zawartości pliku.
-	 * Struktura pliku wejściowego: <br>
-	 * studentList - groupList - classList - classCriterionMap - studentGroupMap - studentGradesMap.
+	 * Metoda wypełniająca bazę danych na podstawie zawartości pliku. Struktura
+	 * pliku wejściowego: <br>
+	 * studentList - groupList - classList - classCriterionMap - studentGroupMap -
+	 * studentGradesMap.
+	 * 
 	 * @param path Ścieżka do pliku wyjściowego.
 	 * @throws Exception
 	 */
-	public void loadFromFile(String path) throws Exception{
+	public synchronized void loadFromFile(String path) throws Exception {
 		FileInputStream fs = new FileInputStream(path);
 		DataInputStream in = new DataInputStream(fs);
 		loadFromFile(in);
 	}
-	
+
 	/**
-	 * Metoda wypełniająca bazę danych na podstawie zawartości strumienia.
-	 * Struktura danych wejściowych: <br> 
-	 * studentList - groupList - classList - classCriterionMap - studentGroupMap - studentGradesMap.
+	 * Metoda wypełniająca bazę danych na podstawie zawartości strumienia. Struktura
+	 * danych wejściowych: <br>
+	 * studentList - groupList - classList - classCriterionMap - studentGroupMap -
+	 * studentGradesMap.
+	 * 
 	 * @param din Strumień wejściowy.
 	 * @throws Exception
 	 */
-	public void loadFromFile(DataInputStream din) throws Exception{
+	public synchronized void loadFromFile(DataInputStream din) throws Exception {
 		loadStudentsFromFile(din);
 		loadGroupsFromFile(din);
 		loadClassesFromFile(din);
-		
 
 		loadClassCriterionMap(din);
 		loadStudentGroupMap(din);
